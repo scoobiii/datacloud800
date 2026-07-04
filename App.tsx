@@ -351,6 +351,7 @@ const App: React.FC = () => {
           turbineMaintenanceScores={currentConfig.turbineMaintenanceScores || {}}
           setTurbineMaintenanceScores={setTurbineMaintenanceScores}
           resourceConfig={resourceConfig}
+          maxCapacity={maxCapacity}
           t={t}
         />;
       case 'Utilities':
@@ -448,6 +449,7 @@ const App: React.FC = () => {
           turbineMaintenanceScores={currentConfig.turbineMaintenanceScores || {}}
           setTurbineMaintenanceScores={setTurbineMaintenanceScores}
           resourceConfig={resourceConfig}
+          maxCapacity={maxCapacity}
           t={t}
         />;
     }

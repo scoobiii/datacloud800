@@ -1111,6 +1111,7 @@ export const OnsAneelGrid: React.FC<{
   const [dessemSimulating, setDessemSimulating] = useState(false);
   const [dessemSimulationHour, setDessemSimulationHour] = useState<number | null>(null);
   const [dessemLogs, setDessemLogs] = useState<string[]>([]);
+  const [aboutSubTab, setAboutSubTab] = useState<'article' | 'security' | 'tools' | 'sources'>('article');
 
   // Function to add a DESSEM log entry
   const addDessemLog = (message: string) => {
@@ -3148,30 +3149,325 @@ export const OnsAneelGrid: React.FC<{
       {/* TAB: ABOUT THE DATA */}
       {activeTab === 'about' && (
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-6 animate-fadeIn">
-          <div>
-            <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <InfoIcon className="w-5 h-5 text-cyan-400" />
-              Fontes Governamentais e Mapeamento SIN (Sistema Interligado Nacional)
-            </h2>
-            <p className="text-gray-400 text-sm mt-1">Explicação técnica das outorgas e barramentos regulatórios que alimentam nossa infraestrutura.</p>
+          {/* Main editorial header */}
+          <div className="border-b border-gray-800 pb-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest block font-mono">
+                  ⚡ ONS & Transição Energética · Artigo Científico & Editorial
+                </span>
+                <h2 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <InfoIcon className="w-5 h-5 text-cyan-400" />
+                  Hub Educacional: Dinâmica Operacional do SIN
+                </h2>
+                <p className="text-gray-400 text-sm">
+                  Estudos sobre intermitência, rampa horária e segurança energética do Sistema Interligado Nacional.
+                </p>
+              </div>
+              <div className="bg-gray-950 px-3 py-2 rounded-lg border border-gray-850 text-right font-mono text-[10px] text-gray-500 self-start md:self-auto">
+                <span className="text-cyan-400 font-bold block">Prof. Edson Mosman</span>
+                mosmanLAB · Edição 2026
+              </div>
+            </div>
+
+            {/* Inner Sub-navigation */}
+            <div className="flex border-b border-gray-800 pb-1 mt-6 overflow-x-auto gap-2 select-none scrollbar-none">
+              <button 
+                onClick={() => setAboutSubTab('article')} 
+                className={`px-4 py-2 text-xs font-bold font-mono uppercase transition-all border-b-2 whitespace-nowrap ${aboutSubTab === 'article' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-400 hover:text-white'}`}
+              >
+                📄 O Artigo (A Curva do Pato)
+              </button>
+              <button 
+                onClick={() => setAboutSubTab('security')} 
+                className={`px-4 py-2 text-xs font-bold font-mono uppercase transition-all border-b-2 whitespace-nowrap ${aboutSubTab === 'security' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-400 hover:text-white'}`}
+              >
+                🛡 Segurança Energética
+              </button>
+              <button 
+                onClick={() => setAboutSubTab('tools')} 
+                className={`px-4 py-2 text-xs font-bold font-mono uppercase transition-all border-b-2 whitespace-nowrap ${aboutSubTab === 'tools' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-400 hover:text-white'}`}
+              >
+                ⚙ Ferramentas do Maestro
+              </button>
+              <button 
+                onClick={() => setAboutSubTab('sources')} 
+                className={`px-4 py-2 text-xs font-bold font-mono uppercase transition-all border-b-2 whitespace-nowrap ${aboutSubTab === 'sources' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-gray-400 hover:text-white'}`}
+              >
+                🗄 Fontes Regulatórias
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs leading-relaxed text-gray-300 font-mono">
-            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800">
-              <h3 className="text-cyan-400 font-bold text-sm mb-2 uppercase">1. ANEEL (SIGA)</h3>
-              <p>O Sistema de Informações de Geração da ANEEL (SIGA) é atualizado diariamente e discrimina a capacidade outorgada de cada gerador centralizado do SIN. Fornece dados geoespaciais, potência instalada nominal (kW) e situação de operação de usinas hidrelétricas, solares, eólicas e nucleares.</p>
-            </div>
+          {/* SUBTAB CONTENT: THE ARTICLE */}
+          {aboutSubTab === 'article' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="bg-gray-950 p-5 rounded-xl border border-gray-850 space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="bg-rose-500/10 text-rose-400 text-[10px] font-extrabold uppercase font-mono px-2 py-0.5 rounded border border-rose-500/20">
+                    Artigo de Capa
+                  </span>
+                  <span className="text-gray-500 text-xs font-mono">📅 Março 2026 · ⏱ 20 min de leitura</span>
+                </div>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                  A Curva do Pato Chegou ao Brasil: Como o ONS Equilibra a Rede Elétrica Hora a Hora
+                </h3>
+                <p className="text-gray-300 text-xs leading-relaxed font-sans">
+                  Às 19h13 de uma segunda-feira de 2024, o Brasil atingiu 94.304 MW de demanda simultânea — com o sol já posto e o vento abaixo do pico. O ONS acionou hidrelétricas e termelétricas em questão de minutos. Esse é o desafio diário da maior rede elétrica renovável do mundo: manter a luz acesa quando o sol se apaga e o vento para.
+                </p>
+                <p className="text-gray-400 text-xs leading-relaxed font-sans">
+                  O ONS é o maestro de uma orquestra com milhares de instrumentos: hidrelétricas que respondem em segundos, termelétricas que levam horas para partir, eólicas que flutuam com o vento, usinas solares que desligam ao pôr do sol, e uma rede de transmissão com 170 mil km de linhas. A chegada das renováveis intermitentes (solar e eólica) tornou essa tarefa dramaticamente mais complexa. E a Curva do Pato, fenômeno que a Califórnia identificou primeiro em 2013, já é uma realidade cotidiana no sistema elétrico brasileiro.
+                </p>
+              </div>
 
-            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800">
-              <h3 className="text-cyan-400 font-bold text-sm mb-2 uppercase">2. ONS (DGI)</h3>
-              <p>A Diretoria de Planejamento do Operador Nacional do Sistema Elétrico (ONS) disponibiliza dados de infraestrutura física de subestações de alta tensão e linhas de transmissão que formam o backbone de interligação física do país, mapeados no DGI (Dados Geográficos de Infraestrutura).</p>
-            </div>
+              {/* Stats Bento Grid */}
+              <div>
+                <span className="text-[10px] text-gray-400 font-extrabold uppercase font-mono tracking-wider mb-3 block">Dados Macroeconômicos e Operacionais (Balanço 2024/2025)</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
+                  <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-1.5 border-l-2 border-l-cyan-500">
+                    <span className="text-[10px] text-cyan-400 font-bold uppercase block">Capacidade total</span>
+                    <span className="text-2xl font-black text-white block">215 GW</span>
+                    <p className="text-gray-500 text-[10px] leading-snug">Capacidade instalada total no Brasil (2025) — maior sistema interligado renovável do planeta.</p>
+                  </div>
 
-            <div className="bg-gray-950 p-4 rounded-lg border border-gray-800">
-              <h3 className="text-cyan-400 font-bold text-sm mb-2 uppercase">3. Trigeração MAUAX</h3>
-              <p>Integramos a telemetria do SIN com o Data Center SP4 para balancear a cogeração da nossa planta. Quando a grade nacional está sob alto estresse (frequência de barramento &lt; 59.95 Hz), acionamos bypass para mitigar consumo do chiller, gerando autossuficiência imediata.</p>
+                  <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-1.5 border-l-2 border-l-emerald-500">
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase block">Matriz Limpa</span>
+                    <span className="text-2xl font-black text-emerald-400 block">88%</span>
+                    <p className="text-gray-500 text-[10px] leading-snug">Proveniente de fontes renováveis: hidrelétrica, solar, eólica, biomassa e PCH.</p>
+                  </div>
+
+                  <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-1.5 border-l-2 border-l-amber-500">
+                    <span className="text-[10px] text-amber-400 font-bold uppercase block">Pico Histórico</span>
+                    <span className="text-2xl font-black text-white block">94.3 GW</span>
+                    <p className="text-gray-500 text-[10px] leading-snug">Pico máximo registrado em 2024 (às 19h13) — momento de solar zero e eólica em queda.</p>
+                  </div>
+
+                  <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-1.5 border-l-2 border-l-rose-500">
+                    <span className="text-[10px] text-rose-400 font-bold uppercase block">Curtailment Anual</span>
+                    <span className="text-2xl font-black text-rose-400 block">400k h</span>
+                    <p className="text-gray-500 text-[10px] leading-snug">Corte de renováveis em 2024 por restrições na rede. R$ 1,6 bi em perdas para geradores.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Anatomy of the Duck Curve */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs font-sans">
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2">
+                  <h4 className="text-amber-400 font-black font-mono uppercase text-xs flex items-center gap-1.5">
+                    <span>☀</span> O Ventre do Pato (Meio-dia)
+                  </h4>
+                  <p className="text-gray-300 leading-relaxed text-xs">
+                    Com a alta penetração da energia solar centralizada e da Geração Distribuída (GD) nos telhados das casas, a demanda líquida que o ONS precisa suprir despenca no meio do dia. O excesso de energia muitas vezes exige que o ONS ordene cortes (curtailment) de usinas solares e eólicas para garantir a segurança física da rede elétrica, gerando desperdício e perdas para os operadores.
+                  </p>
+                </div>
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2">
+                  <h4 className="text-rose-400 font-black font-mono uppercase text-xs flex items-center gap-1.5">
+                    <span>🌙</span> A Cabeça do Pato (Entardecer)
+                  </h4>
+                  <p className="text-gray-300 leading-relaxed text-xs">
+                    Ao pôr do sol (entre 17h e 19h), toda a geração solar despenca para zero quase instantaneamente. No mesmo instante, a demanda residencial dispara com a volta das pessoas para casa. Isso força as usinas flexíveis (hidrelétricas e térmicas) a realizarem rampas de geração gigantescas (até 38.300 MW em poucas horas) para preencher essa lacuna vertiginosa.
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* SUBTAB CONTENT: ENERGY SECURITY */}
+          {aboutSubTab === 'security' && (
+            <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              <div className="bg-gray-950 p-5 rounded-xl border border-gray-850 space-y-3 font-sans">
+                <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <span>🛡</span> As 4 Dimensões da Segurança Energética do Brasil
+                </h3>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  A segurança energética consiste na capacidade de garantir energia confiável, acessível e suficiente para a economia de forma contínua. Avaliamos a transição energética brasileira com base no índice normalizado da Agência Internacional de Energia (IEA) sob quatro pilares estratégicos:
+                </p>
+              </div>
+
+              {/* Dimension Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-gray-900 pb-2">
+                    <span className="text-cyan-400 font-black uppercase text-xs">1. Disponibilidade</span>
+                    <span className="bg-cyan-950 text-cyan-400 text-[9px] px-2 py-0.5 rounded font-extrabold">Privilegiado</span>
+                  </div>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    O Brasil possui abundância incomparável de insumos primários: sol regular, ventos fortes e constantes no Nordeste, bacias hidrográficas gigantescas e reservas de petróleo no pré-sal para geração de base se necessário. Porém, as mudanças climáticas impõem riscos de secas prolongadas sobre os reservatórios das hidrelétricas.
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-gray-900 pb-2">
+                    <span className="text-emerald-400 font-black uppercase text-xs">2. Sustentabilidade</span>
+                    <span className="bg-emerald-950 text-emerald-400 text-[9px] px-2 py-0.5 rounded font-extrabold">Referência Global</span>
+                  </div>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    A matriz elétrica é uma das mais limpas do planeta. Com 88% de fontes limpas, a taxa média de emissões brasileira é de apenas 59.9 kg CO₂/MWh, enquanto os grandes competidores globais como EUA, Alemanha ou China excedem a marca de 400 kg CO₂/MWh devido à dependência histórica de carvão mineral e gás natural.
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-gray-900 pb-2">
+                    <span className="text-rose-400 font-black uppercase text-xs">3. Resiliência de Rede</span>
+                    <span className="bg-rose-950/80 text-rose-400 text-[9px] px-2 py-0.5 rounded font-extrabold">Crítico / Gargalo</span>
+                  </div>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    Ausência severa de sistemas comerciais de baterias grid-scale e de usinas reversíveis por bombeamento hidráulico. Toda a carga de compensação de frequência repousa sobre a variação diária das turbinas hidrelétricas. Além disso, há grande concentração geográfica de parques solares e eólicos no Nordeste, sem linhas de transmissão suficientes para escoar ao Sudeste.
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-gray-900 pb-2">
+                    <span className="text-amber-400 font-black uppercase text-xs">4. Acessibilidade</span>
+                    <span className="bg-amber-950 text-amber-400 text-[9px] px-2 py-0.5 rounded font-extrabold">Moderado / Volátil</span>
+                  </div>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    A variação de preços (PLD) flutua dramaticamente de acordo com a hidrologia nacional. No auge da crise hídrica de 2021, o PLD atingiu o teto regulatório de R$ 822/MWh, encarecendo os custos operacionais para as indústrias e exigindo o acionamento de termoelétricas emergenciais de alto custo marginal.
+                  </p>
+                </div>
+              </div>
+
+              {/* The Water Battery Concept */}
+              <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2.5 font-sans">
+                <h4 className="text-white font-extrabold text-xs flex items-center gap-1.5">
+                  <span>💧</span> O Paradoxo Brasileiro: A Hidrelétrica como Bateria Gigante
+                </h4>
+                <p className="text-gray-300 leading-relaxed text-xs">
+                  O Brasil tem uma vantagem geográfica que a Califórnia, Alemanha e China não possuem: hidrelétricas com reservatórios de acumulação. Água represada é energia potencial armazenada. Quando as usinas solares produzem muito no meio-dia, o ONS desliga as comportas das hidrelétricas, guardando a água. Ao entardecer, quando a solar cai a zero, as hidrelétricas abrem as turbinas em segundos, preenchendo a rampa de forma limpa e rápida.
+                </p>
+                <div className="bg-gray-900 p-3 rounded border border-gray-850 text-amber-400 text-[11px] leading-relaxed font-mono">
+                  <strong>O Alerta Climático:</strong> Este modelo virtuoso de simbiose solar-hidro depende da estabilidade do regime de chuvas. Com as mudanças climáticas gerando secas severas frequentes, o "armazenamento de água" torna-se mais imprevisível, forçando o país a queimar combustíveis fósseis ou instalar baterias caras.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SUBTAB CONTENT: THE MAESTRO TOOLS */}
+          {aboutSubTab === 'tools' && (
+            <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              <div className="bg-gray-950 p-5 rounded-xl border border-gray-850 space-y-3 font-sans">
+                <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <span>⚙</span> Como o Maestro Invisível Trabalha: As Ferramentas do ONS
+                </h3>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  Para equilibrar em tempo real a maior rede elétrica interligada e renovável do planeta (composta por mais de 170.000 km de linhas de transmissão em 60 Hz estáveis), o ONS utiliza algoritmos matemáticos complexos de planejamento e operação:
+                </p>
+              </div>
+
+              {/* Tool breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2">
+                  <span className="text-cyan-400 font-extrabold uppercase text-[10px] block">01. Despacho Centralizado</span>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    Decisão horária automatizada de quais usinas devem gerar energia. Utiliza modelos computacionais de otimização estocástica linear: <strong>DESSEM</strong> (curto prazo horossazonal), <strong>DECOMP</strong> (médio prazo) e <strong>NEWAVE</strong> (longo prazo), minimizando o CMO (Custo Marginal de Operação).
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2">
+                  <span className="text-cyan-400 font-extrabold uppercase text-[10px] block">02. Intercâmbio de Subsistemas</span>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    O SIN é estruturado em 4 grandes subsistemas de rede (Norte, Nordeste, SE/CO, Sul). O ONS opera o direcionamento constante de energia entre subsistemas para escoar os picos de geração renovável e compensar flutuações de demanda industrial.
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2">
+                  <span className="text-rose-400 font-extrabold uppercase text-[10px] block">03. Curtailment (Cortes de Geração)</span>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    Quando o Nordeste gera excedentes gigantescos de eólica e solar de madrugada ou ao meio-dia e não há demanda regional ou capacidade nas linhas de transmissão para transferir a energia, o ONS corta a geração ativamente. Em 2024, foram 400.000 horas de restrição, desperdiçando 14,6 TWh de energia limpa.
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2">
+                  <span className="text-orange-400 font-extrabold uppercase text-[10px] block">04. Térmicas de Regulação</span>
+                  <p className="text-gray-300 leading-relaxed text-[11px] font-sans">
+                    Embora poluidoras e caras, as termelétricas a gás, biomassa e carvão são chamadas pelo ONS para manter a base estável quando a rampa do entardecer se torna abrupta demais para ser coberta unicamente por hidrelétricas de reservatório, garantindo a firmeza do SIN.
+                  </p>
+                </div>
+              </div>
+
+              {/* Solutions Table */}
+              <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-3">
+                <h4 className="text-white font-extrabold font-sans text-xs uppercase tracking-wider">
+                  Estudo de Soluções Tecnológicas para Mitigação da Curva do Pato no Brasil
+                </h4>
+                <div className="overflow-x-auto text-[11px]">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-gray-400">
+                        <th className="py-2 pr-4 font-bold">Solução Proposta</th>
+                        <th className="py-2 px-4 font-bold">Eficácia Operacional</th>
+                        <th className="py-2 px-4 font-bold">Maturidade no Brasil</th>
+                        <th className="py-2 pl-4 font-bold">Custo Relativo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-900 font-mono text-gray-300">
+                      <tr>
+                        <td className="py-2.5 pr-4 font-sans font-bold text-white">Baterias Grid-Scale</td>
+                        <td className="py-2.5 px-4 text-emerald-400 font-extrabold">✓ ALTÍSSIMA (Rápida)</td>
+                        <td className="py-2.5 px-4 text-rose-400 font-bold">⚠ INCIPIENTE (Fase Piloto)</td>
+                        <td className="py-2.5 pl-4 text-rose-400">Alto (Sistemas de Lítio)</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 pr-4 font-sans font-bold text-white">Hidro Reversível (Bombeamento)</td>
+                        <td className="py-2.5 px-4 text-emerald-400 font-extrabold">✓ ALTA (Grande Porte)</td>
+                        <td className="py-2.5 px-4 text-yellow-400 font-bold">⚠ MÉDIA (Estudos EPE)</td>
+                        <td className="py-2.5 pl-4 text-amber-400">Moderado (Aproveita relevo)</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 pr-4 font-sans font-bold text-white">Resposta de Demanda (Demand Response)</td>
+                        <td className="py-2.5 px-4 text-yellow-400 font-bold">✓ MODERADA (Deslocamento)</td>
+                        <td className="py-2.5 px-4 text-yellow-400 font-bold">⚠ REGULAMENTADA (Em Expansão)</td>
+                        <td className="py-2.5 pl-4 text-emerald-400">Baixo (Tarifas dinâmicas)</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 pr-4 font-sans font-bold text-white">Ampliação das Linhas de Transmissão</td>
+                        <td className="py-2.5 px-4 text-emerald-400 font-extrabold">✓ CRÍTICA / ESSENCIAL</td>
+                        <td className="py-2.5 px-4 text-emerald-400 font-extrabold">✓ COMPLETA (Leilões anuais)</td>
+                        <td className="py-2.5 pl-4 text-rose-400">Alto (Rede continental)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SUBTAB CONTENT: REGULATORY SOURCES */}
+          {aboutSubTab === 'sources' && (
+            <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              <div className="bg-gray-950 p-5 rounded-xl border border-gray-850 space-y-3 font-sans">
+                <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <span>🗄</span> Infraestrutura de Dados e APIs de Telemetria do Projeto
+                </h3>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  Os dados exibidos nos barramentos de rede e nos cartogramas de árvore deste projeto provêm do monitoramento consolidado de órgãos e resoluções normativas federais:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 leading-relaxed text-gray-300">
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 space-y-2">
+                  <h3 className="text-cyan-400 font-bold text-sm border-b border-gray-900 pb-2 uppercase">1. ANEEL (SIGA)</h3>
+                  <p className="text-[11px] font-sans">
+                    O Sistema de Informações de Geração da ANEEL (SIGA) é atualizado diariamente e discrimina a capacidade outorgada de cada gerador centralizado do SIN. Fornece dados geoespaciais, potência instalada nominal (kW) e situação de operação de usinas hidrelétricas, solares, eólicas e nucleares.
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 space-y-2">
+                  <h3 className="text-cyan-400 font-bold text-sm border-b border-gray-900 pb-2 uppercase">2. ONS (DGI)</h3>
+                  <p className="text-[11px] font-sans">
+                    A Diretoria de Planejamento do Operador Nacional do Sistema Elétrico (ONS) disponibiliza dados de infraestrutura física de subestações de alta tensão e linhas de transmissão que formam o backbone de interligação física do país, mapeados no DGI (Dados Geográficos de Infraestrutura).
+                  </p>
+                </div>
+
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-800 space-y-2">
+                  <h3 className="text-cyan-400 font-bold text-sm border-b border-gray-900 pb-2 uppercase">3. Trigeração MAUAX</h3>
+                  <p className="text-[11px] font-sans">
+                    Integramos a telemetria do SIN com o Data Center SP4 para balancear a cogeração da nossa planta. Quando a grade nacional está sob alto estresse (frequência de barramento &lt; 59.95 Hz), acionamos bypass para mitigar consumo do chiller, gerando autossuficiência imediata.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

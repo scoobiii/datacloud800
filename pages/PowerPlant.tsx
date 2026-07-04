@@ -36,6 +36,7 @@ interface PowerPlantProps {
   turbineMaintenanceScores: { [key: number]: number };
   setTurbineMaintenanceScores: React.Dispatch<React.SetStateAction<{ [key: number]: number }>>;
   resourceConfig: ResourceConfig;
+  maxCapacity: number;
   t: (key: string) => string;
 }
 
@@ -60,24 +61,65 @@ const generateTimeLabel = (index: number, range: '24h' | '7d') => {
     }
 };
 
-const generateHistoricalData = (range: '24h' | '7d'): LongHistoricalDataPoint[] => {
+const generateHistoricalData = (
+    range: '24h' | '7d',
+    maxCapacity: number,
+    plantStatus: PlantStatus,
+    fuelMode: FuelMode,
+    flexMix: { h2: number; biodiesel: number }
+): LongHistoricalDataPoint[] => {
     const points = range === '24h' ? 24 : 7;
-    return Array.from({ length: points }, (_, i) => ({
-        time: generateTimeLabel(i, range),
-        power: 2100 + Math.random() * 300,
-        consumption: 350 + Math.random() * 50,
-    }));
+    const isOnline = plantStatus === PlantStatus.Online;
+    
+    // Determine a realistic base consumption multiplier in kg/s per MW
+    let baseConsumptionPerMW = 0.15; // kg/s per MW by default
+    if (fuelMode === FuelMode.Nuclear) {
+        baseConsumptionPerMW = 0.0001; // almost zero
+    } else if (fuelMode === FuelMode.Ethanol) {
+        baseConsumptionPerMW = 0.22;
+    } else if (fuelMode === FuelMode.Biodiesel) {
+        baseConsumptionPerMW = 0.20;
+    } else if (fuelMode === FuelMode.FlexNGH2) {
+        const h2Ratio = flexMix.h2 / 100;
+        baseConsumptionPerMW = 0.15 * (1 - h2Ratio * 0.4) + 0.01 * h2Ratio;
+    } else if (fuelMode === FuelMode.FlexEthanolBiodiesel) {
+        const bioRatio = flexMix.biodiesel / 100;
+        baseConsumptionPerMW = 0.22 * (1 - bioRatio) + 0.20 * bioRatio;
+    }
+
+    return Array.from({ length: points }, (_, i) => {
+        let power = 0;
+        let consumption = 0;
+        
+        if (isOnline) {
+            // Generate realistic power output around 85% to 95% of maxCapacity
+            power = maxCapacity * (0.85 + Math.random() * 0.1);
+            consumption = power * baseConsumptionPerMW * (0.95 + Math.random() * 0.1);
+        }
+        
+        return {
+            time: generateTimeLabel(i, range),
+            power,
+            consumption,
+        };
+    });
 };
 
-const generateHistoricalResourceData = (range: '24h' | '7d'): ResourceDataPoint[] => {
+const generateHistoricalResourceData = (
+    range: '24h' | '7d',
+    plantStatus: PlantStatus,
+    resourceConfig: ResourceConfig
+): ResourceDataPoint[] => {
     const points = range === '24h' ? 24 : 7;
+    const isOnline = plantStatus === PlantStatus.Online;
+    
     return Array.from({ length: points }, (_, i) => ({
         time: generateTimeLabel(i, range),
-        water: 110 + Math.random() * 20, // m³/h
-        gas: 8200 + Math.random() * 600, // m³/h
-        ethanol: 50 + Math.random() * 10, // m³/h
-        biodiesel: 40 + Math.random() * 8, // m³/h
-        h2: 10 + Math.random() * 5, // kg/h
+        water: isOnline && resourceConfig.water ? 110 + Math.random() * 20 : 0,
+        gas: isOnline && resourceConfig.gas ? 8200 + Math.random() * 600 : 0,
+        ethanol: isOnline && resourceConfig.ethanol ? 50 + Math.random() * 10 : 0,
+        biodiesel: isOnline && resourceConfig.biodiesel ? 40 + Math.random() * 8 : 0,
+        h2: isOnline && resourceConfig.h2 ? 10 + Math.random() * 5 : 0,
     }));
 };
 
@@ -112,6 +154,7 @@ const PowerPlant: React.FC<PowerPlantProps> = ({
     turbineMaintenanceScores,
     setTurbineMaintenanceScores,
     resourceConfig,
+    maxCapacity,
     t,
 }) => {
     // --- STATE MANAGEMENT ---
@@ -154,11 +197,11 @@ const PowerPlant: React.FC<PowerPlantProps> = ({
 
     // --- EFFECTS FOR DYNAMIC DATA ---
 
-    // Update historical data when time range changes
+    // Update historical data when time range, capacity, status, fuel, or resource visibility changes
     useEffect(() => {
-        setHistoricalData(generateHistoricalData(timeRange));
-        setHistoricalResourceData(generateHistoricalResourceData(timeRange));
-    }, [timeRange]);
+        setHistoricalData(generateHistoricalData(timeRange, maxCapacity, plantStatus, fuelMode, flexMix));
+        setHistoricalResourceData(generateHistoricalResourceData(timeRange, plantStatus, resourceConfig));
+    }, [timeRange, maxCapacity, plantStatus, fuelMode, flexMix, resourceConfig]);
 
     // Update emissions based on fuel mode changes
     useEffect(() => {
@@ -230,30 +273,30 @@ const PowerPlant: React.FC<PowerPlantProps> = ({
         const resourceInterval = setInterval(() => {
             if (plantStatus === PlantStatus.Online) {
                 setResourceData(prev => ({
-                    waterConsumption: Math.max(100, Math.min(150, prev.waterConsumption + (Math.random() - 0.5) * 5)),
-                    gasConsumption: Math.max(8000, Math.min(9000, prev.gasConsumption + (Math.random() - 0.5) * 200)),
-                    ethanolConsumption: Math.max(45, Math.min(65, prev.ethanolConsumption + (Math.random() - 0.5) * 2)),
-                    biodieselConsumption: Math.max(35, Math.min(50, prev.biodieselConsumption + (Math.random() - 0.5) * 2)),
-                    h2Consumption: Math.max(8, Math.min(15, prev.h2Consumption + (Math.random() - 0.5) * 1)),
+                    waterConsumption: resourceConfig.water ? Math.max(100, Math.min(150, prev.waterConsumption + (Math.random() - 0.5) * 5)) : 0,
+                    gasConsumption: resourceConfig.gas ? Math.max(8000, Math.min(9000, prev.gasConsumption + (Math.random() - 0.5) * 200)) : 0,
+                    ethanolConsumption: resourceConfig.ethanol ? Math.max(45, Math.min(65, prev.ethanolConsumption + (Math.random() - 0.5) * 2)) : 0,
+                    biodieselConsumption: resourceConfig.biodiesel ? Math.max(35, Math.min(50, prev.biodieselConsumption + (Math.random() - 0.5) * 2)) : 0,
+                    h2Consumption: resourceConfig.h2 ? Math.max(8, Math.min(15, prev.h2Consumption + (Math.random() - 0.5) * 1)) : 0,
                     waterStorage: {
                         ...prev.waterStorage,
-                        level: Math.max(0, Math.min(prev.waterStorage.capacity, prev.waterStorage.level + (Math.random() - 0.51) * 10)), // slight negative bias
+                        level: resourceConfig.water ? Math.max(0, Math.min(prev.waterStorage.capacity, prev.waterStorage.level + (Math.random() - 0.51) * 10)) : prev.waterStorage.level, // slight negative bias
                     },
                     gasStorage: {
                         ...prev.gasStorage,
-                        level: Math.max(0, Math.min(prev.gasStorage.capacity, prev.gasStorage.level + (Math.random() - 0.51) * 50)), // slight negative bias
+                        level: resourceConfig.gas ? Math.max(0, Math.min(prev.gasStorage.capacity, prev.gasStorage.level + (Math.random() - 0.51) * 50)) : prev.gasStorage.level, // slight negative bias
                     },
                     ethanolStorage: {
                         ...prev.ethanolStorage,
-                        level: Math.max(0, Math.min(prev.ethanolStorage.capacity, prev.ethanolStorage.level + (Math.random() - 0.51) * 20)),
+                        level: resourceConfig.ethanol ? Math.max(0, Math.min(prev.ethanolStorage.capacity, prev.ethanolStorage.level + (Math.random() - 0.51) * 20)) : prev.ethanolStorage.level,
                     },
                     biodieselStorage: {
                         ...prev.biodieselStorage,
-                        level: Math.max(0, Math.min(prev.biodieselStorage.capacity, prev.biodieselStorage.level + (Math.random() - 0.51) * 15)),
+                        level: resourceConfig.biodiesel ? Math.max(0, Math.min(prev.biodieselStorage.capacity, prev.biodieselStorage.level + (Math.random() - 0.51) * 15)) : prev.biodieselStorage.level,
                     },
                     h2Storage: {
                         ...prev.h2Storage,
-                        level: Math.max(0, Math.min(prev.h2Storage.capacity, prev.h2Storage.level + (Math.random() - 0.51) * 5)),
+                        level: resourceConfig.h2 ? Math.max(0, Math.min(prev.h2Storage.capacity, prev.h2Storage.level + (Math.random() - 0.51) * 5)) : prev.h2Storage.level,
                     }
                 }));
             } else {
@@ -268,7 +311,7 @@ const PowerPlant: React.FC<PowerPlantProps> = ({
             }
         }, 3000);
         return () => clearInterval(resourceInterval);
-    }, [plantStatus]);
+    }, [plantStatus, resourceConfig]);
     
     // Simulate real-time data updates for turbines and ambient conditions
     useEffect(() => {
