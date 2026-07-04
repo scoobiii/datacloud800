@@ -1,0 +1,6 @@
+{
+  "name": "MEX BioDataCloud",
+  "description": "A comprehensive real-time dashboard for monitoring a bio-thermoelectric plant, its associated utilities like waste heat recovery and turbine cooling, a liquid-cooled data center, and fuel infrastructure.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
