@@ -971,13 +971,647 @@ const BAIRROS_GD_DATA: any[] = [
   }
 ];
 
+// ==========================================
+// INTERFACES & DEFAULTS FOR SOLAR AI MAPPING
+// ==========================================
+export interface SolarMappingData {
+  id: string;
+  street: string;
+  block: string;
+  neighborhood: string;
+  municipality: string;
+  state: string;
+  country: string;
+  roofsDetected: number;
+  solarRoofs: number;
+  totalArea: number; // in m²
+  solarArea: number; // in m²
+  averageIrradiance: number; // in kWh/m²/day
+  panelEfficiency: number; // %
+  performanceRatio: number; // %
+  lastScan: string; // ISO String
+  notes?: string;
+}
+
+const DEFAULT_SOLAR_MAPPING_DB: SolarMappingData[] = [
+  {
+    id: 'SM-001',
+    street: 'Av. Coronel Silva Telles',
+    block: 'Quadra Residencial A1',
+    neighborhood: 'Jardins',
+    municipality: 'Campinas',
+    state: 'SP',
+    country: 'Brasil',
+    roofsDetected: 42,
+    solarRoofs: 12,
+    totalArea: 16800,
+    solarArea: 1440,
+    averageIrradiance: 5.2,
+    panelEfficiency: 20.0,
+    performanceRatio: 78.0,
+    lastScan: '2026-07-02T14:30:00.000Z'
+  },
+  {
+    id: 'SM-002',
+    street: 'Av. Coronel Silva Telles',
+    block: 'Quadra Comercial B3',
+    neighborhood: 'Jardins',
+    municipality: 'Campinas',
+    state: 'SP',
+    country: 'Brasil',
+    roofsDetected: 28,
+    solarRoofs: 8,
+    totalArea: 11200,
+    solarArea: 1120,
+    averageIrradiance: 5.2,
+    panelEfficiency: 20.0,
+    performanceRatio: 78.0,
+    lastScan: '2026-07-02T14:35:00.000Z'
+  },
+  {
+    id: 'SM-003',
+    street: 'Rua Benjamin Constant',
+    block: 'Quadra Comercial Q4',
+    neighborhood: 'Jardins',
+    municipality: 'Campinas',
+    state: 'SP',
+    country: 'Brasil',
+    roofsDetected: 55,
+    solarRoofs: 15,
+    totalArea: 22000,
+    solarArea: 1800,
+    averageIrradiance: 5.2,
+    panelEfficiency: 20.0,
+    performanceRatio: 78.0,
+    lastScan: '2026-07-03T09:12:00.000Z'
+  },
+  {
+    id: 'SM-004',
+    street: 'Av. Jesuíno Marcondes',
+    block: 'Quadra M1',
+    neighborhood: 'Moema',
+    municipality: 'Campinas',
+    state: 'SP',
+    country: 'Brasil',
+    roofsDetected: 35,
+    solarRoofs: 10,
+    totalArea: 14000,
+    solarArea: 1200,
+    averageIrradiance: 5.2,
+    panelEfficiency: 19.5,
+    performanceRatio: 75.0,
+    lastScan: '2026-07-04T10:00:00.000Z'
+  },
+  {
+    id: 'SM-005',
+    street: 'Av. Getúlio Vargas',
+    block: 'Quadra Savassi Central',
+    neighborhood: 'Savassi',
+    municipality: 'Uberlândia',
+    state: 'MG',
+    country: 'Brasil',
+    roofsDetected: 48,
+    solarRoofs: 18,
+    totalArea: 19200,
+    solarArea: 2160,
+    averageIrradiance: 5.6,
+    panelEfficiency: 21.0,
+    performanceRatio: 80.0,
+    lastScan: '2026-07-01T16:45:00.000Z'
+  },
+  {
+    id: 'SM-006',
+    street: 'Rua Pernambuco',
+    block: 'Quadra Savassi Norte',
+    neighborhood: 'Savassi',
+    municipality: 'Uberlândia',
+    state: 'MG',
+    country: 'Brasil',
+    roofsDetected: 32,
+    solarRoofs: 6,
+    totalArea: 12800,
+    solarArea: 720,
+    averageIrradiance: 5.6,
+    panelEfficiency: 21.0,
+    performanceRatio: 80.0,
+    lastScan: '2026-07-01T17:00:00.000Z'
+  },
+  {
+    id: 'SM-007',
+    street: 'Av. da Integração',
+    block: 'Quadra Sol Nascente 1',
+    neighborhood: 'Bela Vista',
+    municipality: 'Petrolina',
+    state: 'PE',
+    country: 'Brasil',
+    roofsDetected: 60,
+    solarRoofs: 25,
+    totalArea: 24000,
+    solarArea: 3750,
+    averageIrradiance: 6.2,
+    panelEfficiency: 22.0,
+    performanceRatio: 82.0,
+    lastScan: '2026-07-04T12:30:00.000Z'
+  },
+  {
+    id: 'SM-008',
+    street: 'Rua Joaquim Nabuco',
+    block: 'Quadra Sol Nascente 2',
+    neighborhood: 'Bela Vista',
+    municipality: 'Petrolina',
+    state: 'PE',
+    country: 'Brasil',
+    roofsDetected: 45,
+    solarRoofs: 14,
+    totalArea: 18000,
+    solarArea: 2100,
+    averageIrradiance: 6.2,
+    panelEfficiency: 22.0,
+    performanceRatio: 82.0,
+    lastScan: '2026-07-04T13:10:00.000Z'
+  },
+  {
+    id: 'SM-009',
+    street: 'Av. Frei Serafim',
+    block: 'Quadra Universitária',
+    neighborhood: 'Aldeota',
+    municipality: 'Teresina',
+    state: 'PI',
+    country: 'Brasil',
+    roofsDetected: 50,
+    solarRoofs: 22,
+    totalArea: 20000,
+    solarArea: 3300,
+    averageIrradiance: 6.5,
+    panelEfficiency: 22.0,
+    performanceRatio: 82.0,
+    lastScan: '2026-07-02T11:20:00.000Z'
+  },
+  {
+    id: 'SM-010',
+    street: 'Rua Coelho de Resende',
+    block: 'Quadra Comercial Q2',
+    neighborhood: 'Aldeota',
+    municipality: 'Teresina',
+    state: 'PI',
+    country: 'Brasil',
+    roofsDetected: 38,
+    solarRoofs: 15,
+    totalArea: 15200,
+    solarArea: 2250,
+    averageIrradiance: 6.5,
+    panelEfficiency: 22.0,
+    performanceRatio: 82.0,
+    lastScan: '2026-07-02T11:45:00.000Z'
+  }
+];
+
 export const OnsAneelGrid: React.FC<{
   t: (key: string) => string;
 }> = ({ t }) => {
-  // Tabs: 'treemap' | 'api-console' | 'about' | 'dessem-dispatch'
-  const [activeTab, setActiveTab] = useState<'treemap' | 'api-console' | 'about' | 'dessem-dispatch'>('treemap');
+  // Tabs: 'treemap' | 'solar-map' | 'solar-microgrid' | 'api-console' | 'about' | 'dessem-dispatch'
+  const [activeTab, setActiveTab] = useState<'treemap' | 'solar-map' | 'solar-microgrid' | 'api-console' | 'about' | 'dessem-dispatch'>('treemap');
   
-  // Hierarchy Level state
+  // ==========================================
+  // STATE MANAGEMENT FOR SOLAR IA MAPPING
+  // ==========================================
+  const [solarMappingDb, setSolarMappingDb] = useState<SolarMappingData[]>(() => {
+    const saved = localStorage.getItem('mex_ai_solar_mapping_db');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Erro ao ler banco de dados solar persistido:", e);
+      }
+    }
+    return DEFAULT_SOLAR_MAPPING_DB;
+  });
+
+  // Persist solar mapping data dynamically
+  useEffect(() => {
+    localStorage.setItem('mex_ai_solar_mapping_db', JSON.stringify(solarMappingDb));
+  }, [solarMappingDb]);
+
+  // Sliders for dynamic modeling
+  const [irradiance, setIrradiance] = useState<number>(5.5);
+  const [efficiency, setEfficiency] = useState<number>(20.0);
+  const [pr, setPr] = useState<number>(78.0);
+  const [usablePercent, setUsablePercent] = useState<number>(50.0);
+
+  // Drilldown hierarchy state for solar map
+  const [solarLevel, setSolarLevel] = useState<'pais' | 'estado' | 'municipio' | 'bairro' | 'rua' | 'quadra'>('pais');
+  const [selState, setSelState] = useState<string | null>(null);
+  const [selMunicipality, setSelMunicipality] = useState<string | null>(null);
+  const [selNeighborhood, setSelNeighborhood] = useState<string | null>(null);
+  const [selStreet, setSelStreet] = useState<string | null>(null);
+  const [selBlock, setSelBlock] = useState<string | null>(null);
+
+  // Interactive scan state
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanLogs, setScanLogs] = useState<string[]>([]);
+  const [scanCompletedBlocks, setScanCompletedBlocks] = useState<Record<string, boolean>>({});
+
+  // Search filter inside child select options
+  const [solarSearchQuery, setSolarSearchQuery] = useState('');
+
+  // Form for adding new location/blocks
+  const [formState, setFormState] = useState({
+    state: '',
+    municipality: '',
+    neighborhood: '',
+    street: '',
+    block: '',
+    roofsDetected: 35,
+    solarRoofs: 8,
+    totalArea: 12000,
+    solarArea: 960,
+  });
+  const [formError, setFormError] = useState('');
+
+  // ==========================================
+  // STATE MANAGEMENT FOR SOLAR MICROGRID 800VDC TIER V
+  // ==========================================
+  const [selectedStakeholder, setSelectedStakeholder] = useState<string>('MEX Data Cloud Consortium');
+  const [microgridArea, setMicrogridArea] = useState<number>(18500); // m² rooftop area
+  const [microgridIrradiance, setMicrogridIrradiance] = useState<number>(6.4); // kWh/m²/dia (default Teresina/PI solar peak)
+  const [microgridPanelEff, setMicrogridPanelEff] = useState<number>(22.8); // % high-efficiency solar panels
+  const [microgridAutonomy, setMicrogridAutonomy] = useState<number>(14); // horas sem sol (support period)
+  const [dataCenterLoad, setDataCenterLoad] = useState<number>(1500); // kW nominal IT cloud load
+  const [hvacLiquidCoolingPower, setHvacLiquidCoolingPower] = useState<number>(420); // kW liquid cooling direct 800VDC hvac load
+  const [bessDepthOfDischarge, setBessDepthOfDischarge] = useState<number>(90); // % DoD
+  const [bessChemistry, setBessChemistry] = useState<string>('LFP de Alta Cicabilidade (6.000 ciclos)');
+  const [activeDocSection, setActiveDocSection] = useState<'commissioning' | 'lease' | 'epc' | 'commercial'>('commissioning');
+  const [microgridSimulationLog, setMicrogridSimulationLog] = useState<string[]>([]);
+  const [isSimulatingMicrogrid, setIsSimulatingMicrogrid] = useState<boolean>(false);
+
+  // Dynamic mathematical model for 800VDC off-grid solar + BESS Tier V
+  const microgridMetrics = useMemo(() => {
+    // 1. Solar Capacity and Power Potential
+    // Nominal capacity: Area (m²) * panel efficiency * 1000 W/m² (standard test conditions STC) in MWp
+    const nominalPowerMWp = (microgridArea * (microgridPanelEff / 100) * 1000) / 1000000;
+    
+    // Daily generation: MWp * Sun hours (Irradiance) * DC-DC System efficiency (91% because of 800VDC busbar direct feed, bypassing DC-AC-DC losses)
+    const systemPR = 0.91;
+    const dailyGenMWh = nominalPowerMWp * microgridIrradiance * systemPR;
+    const annualGenMWh = dailyGenMWh * 365;
+
+    // 2. Data Cloud Load Combined with HVAC Liquid Cooling
+    const totalLoadKW = dataCenterLoad + hvacLiquidCoolingPower;
+    const dailyDemandMWh = (totalLoadKW * 24) / 1000;
+    const annualDemandMWh = dailyDemandMWh * 365;
+
+    // 3. BESS Sizing to support the sunless period (Autonomy Hours)
+    // Energy needed = Combined Load * Autonomy hours (hours without sun/at night)
+    const sunlessEnergyNeededMWh = (totalLoadKW * microgridAutonomy) / 1000;
+    // BESS usable size taking Depth of Discharge (DoD) into account
+    const sizedBessCapacityMWh = sunlessEnergyNeededMWh / (bessDepthOfDischarge / 100);
+    const bessPowerMW = totalLoadKW / 1000; // Peak discharge power in MW
+
+    // 4. Energy Efficiency gains from Native 800VDC Busbar + HVAC Liquid Cooling 800VDC
+    // Standard AC system loss: ~18% across converters (Solar DC -> AC Grid -> DC Rectifiers -> Servers).
+    // Native 800VDC directly connects Solar, BESS, and servers, reducing losses by 15.5%.
+    const annualDCBusSavingsMWh = annualDemandMWh * 0.155;
+    // HVAC Liquid Cooling at 800VDC consumes 38% less auxiliary energy compared to standard air cooled AC fans/chillers
+    const annualCoolingSavingsMWh = ((hvacLiquidCoolingPower * 24 * 365) / 1000) * 0.38;
+    const totalAnnualSavedMWh = annualDCBusSavingsMWh + annualCoolingSavingsMWh;
+
+    // 5. Financial Modeling (BRL)
+    // Solar investment: R$ 4.000 per kWp (racks, panels, microinverters/converters, cabling)
+    const solarCapexBRL = nominalPowerMWp * 1000 * 4000;
+    // BESS investment: R$ 1.350 per kWh
+    const bessCapexBRL = sizedBessCapacityMWh * 1000 * 1350;
+    // 800VDC Busbar, distribution switches & static transfer switches
+    const dcBusCapexBRL = 780000; 
+    // HVAC liquid cooling server infrastructure & piping: R$ 1.800 por kW refrigerado
+    const coolingCapexBRL = hvacLiquidCoolingPower * 1800;
+    const totalCapexBRL = solarCapexBRL + bessCapexBRL + dcBusCapexBRL + coolingCapexBRL;
+
+    // Compare with standard utility grid prices + diesel backup amortized cost in Brazil (R$ 1.15 / kWh or R$ 1.150 / MWh)
+    const utilityDieselMixedRate = 1250; // R$/MWh
+    const standardGridAnnualCostBRL = annualDemandMWh * utilityDieselMixedRate;
+    
+    // OPEX (O&M, monitoring, direct rooftop rental/lease fee estimated at R$ 25/m²/year)
+    const annualLeaseFeeBRL = microgridArea * 25;
+    const annualOMCostBRL = totalCapexBRL * 0.015; // 1.5% maintenance
+    const totalOpexBRL = annualLeaseFeeBRL + annualOMCostBRL;
+
+    const annualSavingsBRL = standardGridAnnualCostBRL - totalOpexBRL;
+    const simplePaybackYears = totalCapexBRL / annualSavingsBRL;
+    const roiPercent10Years = ((annualSavingsBRL * 10) - totalCapexBRL) / totalCapexBRL * 100;
+    const irrPercent = (1 / simplePaybackYears) * 100 + 4.5; // Yield plus financial discount rate
+
+    return {
+      nominalPowerMWp,
+      dailyGenMWh,
+      annualGenMWh,
+      totalLoadKW,
+      dailyDemandMWh,
+      annualDemandMWh,
+      sunlessEnergyNeededMWh,
+      sizedBessCapacityMWh,
+      bessPowerMW,
+      annualDCBusSavingsMWh,
+      annualCoolingSavingsMWh,
+      totalAnnualSavedMWh,
+      solarCapexBRL,
+      bessCapexBRL,
+      dcBusCapexBRL,
+      coolingCapexBRL,
+      totalCapexBRL,
+      standardGridAnnualCostBRL,
+      annualLeaseFeeBRL,
+      annualOMCostBRL,
+      totalOpexBRL,
+      annualSavingsBRL,
+      simplePaybackYears,
+      roiPercent10Years,
+      irrPercent,
+    };
+  }, [microgridArea, microgridIrradiance, microgridPanelEff, microgridAutonomy, dataCenterLoad, hvacLiquidCoolingPower, bessDepthOfDischarge]);
+
+  // 24h load, solar generation and battery state-of-charge simulation data
+  const chart24hData = useMemo(() => {
+    const data = [];
+    const combinedLoadKW = dataCenterLoad + hvacLiquidCoolingPower;
+    
+    // Solar generation profile across 24 hours (bell curve centered at 12:00)
+    for (let h = 0; h < 24; h++) {
+      let solarGenPct = 0;
+      if (h >= 6 && h <= 18) {
+        // Bell-like curve shape
+        solarGenPct = Math.sin(((h - 6) / 12) * Math.PI);
+      }
+      
+      const generationKW = microgridMetrics.nominalPowerMWp * 1000 * solarGenPct * (microgridIrradiance / 6);
+      const loadKW = combinedLoadKW * (0.9 + Math.sin((h / 24) * Math.PI * 2) * 0.1); // slight fluctuation
+      
+      // BESS state of charge tracking (simulated for display)
+      // At night BESS discharges. During day it charges from excess solar.
+      let bessSOC = 50;
+      if (h < 6) {
+        bessSOC = Math.max(20, 95 - (h * 12));
+      } else if (h >= 6 && h <= 16) {
+        bessSOC = Math.min(100, 20 + ((h - 6) * 15));
+      } else {
+        bessSOC = Math.max(30, 100 - ((h - 16) * 10));
+      }
+
+      data.push({
+        hour: `${h.toString().padStart(2, '0')}:00`,
+        'Geração Solar (kW)': Math.round(generationKW),
+        'Carga Cloud + HVAC (kW)': Math.round(loadKW),
+        'Bateria SOC (%)': Math.round(bessSOC),
+      });
+    }
+    return data;
+  }, [dataCenterLoad, hvacLiquidCoolingPower, microgridArea, microgridIrradiance, microgridPanelEff, microgridMetrics.nominalPowerMWp]);
+
+  // Settle active calculations for solar potential on the fly
+  const aggregatedSolarMetrics = useMemo(() => {
+    let filtered = solarMappingDb;
+    if (selState) filtered = filtered.filter(r => r.state === selState);
+    if (selMunicipality) filtered = filtered.filter(r => r.municipality === selMunicipality);
+    if (selNeighborhood) filtered = filtered.filter(r => r.neighborhood === selNeighborhood);
+    if (selStreet) filtered = filtered.filter(r => r.street === selStreet);
+    if (selBlock) filtered = filtered.filter(r => r.block === selBlock);
+
+    let totalRoofs = 0;
+    let totalSolarRoofs = 0;
+    let totalRoofArea = 0;
+    let totalSolarPanelArea = 0;
+
+    filtered.forEach(item => {
+      totalRoofs += item.roofsDetected;
+      totalSolarRoofs += item.solarRoofs;
+      totalRoofArea += item.totalArea;
+      totalSolarPanelArea += item.solarArea;
+    });
+
+    // Calculations based on mathematical ratios and user-adjusted sliders
+    const mappedDailyMWh = (totalSolarPanelArea * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+    const mappedMonthlyMWh = mappedDailyMWh * 30.41;
+    const mappedAnnualMWh = mappedDailyMWh * 365;
+
+    // Potential (Untapped) Area
+    const maxUsableArea = totalRoofArea * (usablePercent / 100);
+    const untappedArea = Math.max(0, maxUsableArea - totalSolarPanelArea);
+
+    const untappedDailyMWh = (untappedArea * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+    const untappedMonthlyMWh = untappedDailyMWh * 30.41;
+    const untappedAnnualMWh = untappedDailyMWh * 365;
+
+    const totalPotentialDailyMWh = mappedDailyMWh + untappedDailyMWh;
+    const totalPotentialMonthlyMWh = mappedMonthlyMWh + untappedMonthlyMWh;
+    const totalPotentialAnnualMWh = mappedAnnualMWh + untappedAnnualMWh;
+
+    const coveragePercent = totalRoofs > 0 ? (totalSolarRoofs / totalRoofs) * 100 : 0;
+    const potentialLeveragedPercent = totalPotentialDailyMWh > 0 ? (mappedDailyMWh / totalPotentialDailyMWh) * 100 : 0;
+
+    return {
+      totalRoofs,
+      totalSolarRoofs,
+      totalRoofArea,
+      totalSolarPanelArea,
+      untappedArea,
+      mappedDailyMWh,
+      mappedMonthlyMWh,
+      mappedAnnualMWh,
+      untappedDailyMWh,
+      untappedMonthlyMWh,
+      untappedAnnualMWh,
+      totalPotentialDailyMWh,
+      totalPotentialMonthlyMWh,
+      totalPotentialAnnualMWh,
+      coveragePercent,
+      potentialLeveragedPercent,
+      filteredCount: filtered.length
+    };
+  }, [solarMappingDb, selState, selMunicipality, selNeighborhood, selStreet, selBlock, irradiance, efficiency, pr, usablePercent]);
+
+  // List entities at active hierarchy level
+  const listChildEntities = useMemo(() => {
+    const list: {
+      name: string;
+      value: string;
+      mappedArea: number;
+      roofs: number;
+      gen: number;
+      potential: number;
+    }[] = [];
+
+    if (solarLevel === 'pais') {
+      const states = Array.from(new Set(solarMappingDb.map(r => r.state))) as string[];
+      states.forEach(st => {
+        const records = solarMappingDb.filter(r => r.state === st);
+        const area = records.reduce((acc, r) => acc + r.solarArea, 0);
+        const total = records.reduce((acc, r) => acc + r.totalArea, 0);
+        const gen = (area * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+        const potential = (Math.max(0, (total * (usablePercent / 100)) - area) * irradiance * (efficiency / 100) * (pr / 100)) / 1000 + gen;
+        list.push({ name: st, value: st, mappedArea: area, roofs: records.reduce((acc, r) => acc + r.roofsDetected, 0), gen, potential });
+      });
+    } else if (solarLevel === 'estado') {
+      const recordsForState = solarMappingDb.filter(r => r.state === selState);
+      const munis = Array.from(new Set(recordsForState.map(r => r.municipality))) as string[];
+      munis.forEach(mu => {
+        const records = recordsForState.filter(r => r.municipality === mu);
+        const area = records.reduce((acc, r) => acc + r.solarArea, 0);
+        const total = records.reduce((acc, r) => acc + r.totalArea, 0);
+        const gen = (area * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+        const potential = (Math.max(0, (total * (usablePercent / 100)) - area) * irradiance * (efficiency / 100) * (pr / 100)) / 1000 + gen;
+        list.push({ name: mu, value: mu, mappedArea: area, roofs: records.reduce((acc, r) => acc + r.roofsDetected, 0), gen, potential });
+      });
+    } else if (solarLevel === 'municipio') {
+      const recordsForMuni = solarMappingDb.filter(r => r.state === selState && r.municipality === selMunicipality);
+      const bairros = Array.from(new Set(recordsForMuni.map(r => r.neighborhood))) as string[];
+      bairros.forEach(ba => {
+        const records = recordsForMuni.filter(r => r.neighborhood === ba);
+        const area = records.reduce((acc, r) => acc + r.solarArea, 0);
+        const total = records.reduce((acc, r) => acc + r.totalArea, 0);
+        const gen = (area * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+        const potential = (Math.max(0, (total * (usablePercent / 100)) - area) * irradiance * (efficiency / 100) * (pr / 100)) / 1000 + gen;
+        list.push({ name: ba, value: ba, mappedArea: area, roofs: records.reduce((acc, r) => acc + r.roofsDetected, 0), gen, potential });
+      });
+    } else if (solarLevel === 'bairro') {
+      const recordsForBairro = solarMappingDb.filter(r => r.state === selState && r.municipality === selMunicipality && r.neighborhood === selNeighborhood);
+      const streets = Array.from(new Set(recordsForBairro.map(r => r.street))) as string[];
+      streets.forEach(str => {
+        const records = recordsForBairro.filter(r => r.street === str);
+        const area = records.reduce((acc, r) => acc + r.solarArea, 0);
+        const total = records.reduce((acc, r) => acc + r.totalArea, 0);
+        const gen = (area * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+        const potential = (Math.max(0, (total * (usablePercent / 100)) - area) * irradiance * (efficiency / 100) * (pr / 100)) / 1000 + gen;
+        list.push({ name: str, value: str, mappedArea: area, roofs: records.reduce((acc, r) => acc + r.roofsDetected, 0), gen, potential });
+      });
+    } else if (solarLevel === 'rua') {
+      const recordsForStreet = solarMappingDb.filter(r => r.state === selState && r.municipality === selMunicipality && r.neighborhood === selNeighborhood && r.street === selStreet);
+      recordsForStreet.forEach(blk => {
+        const area = blk.solarArea;
+        const total = blk.totalArea;
+        const gen = (area * irradiance * (efficiency / 100) * (pr / 100)) / 1000;
+        const potential = (Math.max(0, (total * (usablePercent / 100)) - area) * irradiance * (efficiency / 100) * (pr / 100)) / 1000 + gen;
+        list.push({ name: blk.block, value: blk.block, mappedArea: area, roofs: blk.roofsDetected, gen, potential });
+      });
+    }
+
+    return list;
+  }, [solarMappingDb, solarLevel, selState, selMunicipality, selNeighborhood, selStreet, irradiance, efficiency, pr, usablePercent]);
+
+  // Form submit handler
+  const handleAddLocation = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    const { state, municipality, neighborhood, street, block, totalArea, solarArea, roofsDetected, solarRoofs } = formState;
+
+    if (!state || !municipality || !neighborhood || !street || !block) {
+      setFormError('Todos os campos de localização são obrigatórios.');
+      return;
+    }
+
+    if (totalArea <= 0 || roofsDetected <= 0) {
+      setFormError('Área e quantidade de telhados devem ser maiores que zero.');
+      return;
+    }
+
+    if (Number(solarArea) > Number(totalArea)) {
+      setFormError('A área de painéis instalada não pode superar a área de telhados do bloco.');
+      return;
+    }
+
+    const newId = `SM-${Date.now()}`;
+    const newRecord: SolarMappingData = {
+      id: newId,
+      state: state.toUpperCase().trim(),
+      municipality: municipality.trim(),
+      neighborhood: neighborhood.trim(),
+      street: street.trim(),
+      block: block.trim(),
+      country: 'Brasil',
+      totalArea: Number(totalArea),
+      solarArea: Number(solarArea),
+      roofsDetected: Number(roofsDetected),
+      solarRoofs: Number(solarRoofs),
+      averageIrradiance: 5.5,
+      panelEfficiency: 20.0,
+      performanceRatio: 78.0,
+      lastScan: new Date().toISOString()
+    };
+
+    setSolarMappingDb(prev => [newRecord, ...prev]);
+
+    // Set interactive drilldown straight to this custom block
+    setSelState(newRecord.state);
+    setSelMunicipality(newRecord.municipality);
+    setSelNeighborhood(newRecord.neighborhood);
+    setSelStreet(newRecord.street);
+    setSelBlock(newRecord.block);
+    setSolarLevel('quadra');
+
+    // Reset Form Fields
+    setFormState({
+      state: '',
+      municipality: '',
+      neighborhood: '',
+      street: '',
+      block: '',
+      roofsDetected: 35,
+      solarRoofs: 8,
+      totalArea: 12000,
+      solarArea: 960,
+    });
+
+    // Run AI scanner automatically on addition
+    setTimeout(() => {
+      handleStartScan(newId);
+    }, 500);
+  };
+
+  // Run computer vision simulated scan
+  const handleStartScan = (blockId?: string) => {
+    setIsScanning(true);
+    setScanProgress(0);
+    setScanLogs([
+      `[${new Date().toISOString().slice(11, 19)}] >> INICIANDO PROCESSO DE VARREDURA COMPUTAÇÃO GRÁFICA ORBITAL...`,
+      `[${new Date().toISOString().slice(11, 19)}] >> Solicitando imagens multiespectrais Sentinel-2 de alta resolução (0.5m/pixel)...`
+    ]);
+
+    const logs = [
+      `>> Conexão estabelecida com Copernicus API Hub. Cobertura de nuvens: <0.2%.`,
+      `>> Inicializando modelo MEX-ObjectMask-v4.2 no cluster GPU de computação...`,
+      `>> Carregando tensores e pesos profundos de segmentação semântica de instâncias...`,
+      `>> Aplicando modelo MEX-ObjectMask-v4.2 na grade de coordenadas...`,
+      `>> Processamento concluído. Segmentando polígonos de telhados residenciais e comerciais...`,
+      `>> Calculando orientação solar ideal, azimute de telhados e sombreamentos por edificações...`,
+      `>> Classificando reflectância espectral para identificação de painéis solares ativos...`,
+      `>> Cruzando dados de outorgas oficiais da ANEEL SIGA para reconciliação estatística...`,
+      `>> VARREDURA CONCLUÍDA! Base de dados e cálculo de potencial solar atualizados.`
+    ];
+
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      setScanProgress(prev => {
+        const next = prev + 12;
+        if (next >= 100) {
+          clearInterval(interval);
+          setIsScanning(false);
+          setScanProgress(100);
+          if (blockId) {
+            setScanCompletedBlocks(prevComplete => ({ ...prevComplete, [blockId]: true }));
+          }
+          return 100;
+        }
+        return next;
+      });
+
+      if (currentStep < logs.length) {
+        setScanLogs(prev => [...prev, `[${new Date().toISOString().slice(11, 19)}] ${logs[currentStep]}`]);
+        currentStep++;
+      }
+    }, 350);
+  };
+
+  // Sizing & Coloring metrics
   const [hierarchyLevel, setHierarchyLevel] = useState<'nacional' | 'estados' | 'municipios' | 'bairros'>('nacional');
 
   // Drill-down hierarchy state filters
@@ -2066,6 +2700,26 @@ export const OnsAneelGrid: React.FC<{
             Treemap de Ativos Nacional
           </button>
           <button
+            onClick={() => setActiveTab('solar-map')}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors focus:outline-none ${
+              activeTab === 'solar-map'
+                ? 'bg-gray-800 text-cyan-400 border-cyan-400'
+                : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200 border-transparent'
+            }`}
+          >
+            🛰️ Mapeamento Solar por IA
+          </button>
+          <button
+            onClick={() => setActiveTab('solar-microgrid')}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors focus:outline-none ${
+              activeTab === 'solar-microgrid'
+                ? 'bg-gray-800 text-cyan-400 border-cyan-400'
+                : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200 border-transparent'
+            }`}
+          >
+            🔋 Microrede 800VDC Tier V
+          </button>
+          <button
             onClick={() => setActiveTab('dessem-dispatch')}
             className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors focus:outline-none ${
               activeTab === 'dessem-dispatch'
@@ -2638,6 +3292,1404 @@ export const OnsAneelGrid: React.FC<{
               </div>
             </div>
           </DashboardCard>
+        </div>
+      )}
+
+      {/* TAB: AI SOLAR MAPPING & OBJECT CLASSIFICATION */}
+      {activeTab === 'solar-map' && (
+        <div className="space-y-6 animate-fadeIn text-gray-200">
+          <style>{`
+            @keyframes scanSweeper {
+              0% { top: 0%; opacity: 0.1; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { top: 100%; opacity: 0.1; }
+            }
+            .animate-scan-sweeper {
+              animation: scanSweeper 2.5s infinite linear;
+            }
+          `}</style>
+
+          {/* Banner Principal */}
+          <div className="bg-gradient-to-r from-cyan-950/30 via-gray-900 to-gray-950 p-6 rounded-xl border border-gray-800 shadow-xl space-y-3 font-mono">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-cyan-950/60 rounded-lg border border-cyan-800/50">
+                  <GlobeAltIcon className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-widest">Sensoriamento Remoto & Redes Neurais Profundas</span>
+                  <h2 className="text-xl font-black text-white uppercase tracking-tight">Mapeamento Solar por IA & Classificação de Objetos</h2>
+                </div>
+              </div>
+              <div className="bg-gray-950 px-3 py-2 rounded-lg border border-gray-850 text-right font-mono text-[10px] text-gray-400 self-start md:self-auto">
+                <span className="text-cyan-400 font-bold block">Modelo: MEX-ObjectMask-v4.2</span>
+                Mapeamento de Precisão Escalar
+              </div>
+            </div>
+            <p className="text-xs text-gray-300 leading-relaxed font-sans">
+              Utilize o modelo de Deep Learning **MEX-ObjectMask** de segmentação semântica de instâncias para analisar imagens de satélite multiespectrais em tempo real. Identifique automaticamente áreas de telhados livres, meça a área instalada de painéis fotovoltaicos e calcule o potencial real de ampliação de energia solar. Navegue de forma hierárquica desde o escopo nacional até o nível de quadras e ruas individuais.
+            </p>
+          </div>
+
+          {/* KPIs Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono">
+            <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider block">🏠 Telhados Monitorados</span>
+              <span className="text-2xl font-black text-white block">
+                {aggregatedSolarMetrics.totalRoofs.toLocaleString('pt-BR')} <span className="text-xs text-gray-400">unidades</span>
+              </span>
+              <p className="text-[10px] text-gray-500">Mapeamento espectral orbital</p>
+            </div>
+            
+            <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1">
+              <span className="text-[10px] text-emerald-400 uppercase tracking-wider block">☀️ Cobertura Fotovoltaica</span>
+              <span className="text-2xl font-black text-emerald-400 block">
+                {aggregatedSolarMetrics.totalSolarRoofs.toLocaleString('pt-BR')} <span className="text-xs text-emerald-500">({aggregatedSolarMetrics.coveragePercent.toFixed(1)}%)</span>
+              </span>
+              <p className="text-[10px] text-gray-500">Sistemas ativos detectados</p>
+            </div>
+
+            <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1">
+              <span className="text-[10px] text-cyan-400 uppercase tracking-wider block">⚡ Geração Estimada Atual</span>
+              <span className="text-2xl font-black text-cyan-400 block">
+                {aggregatedSolarMetrics.mappedAnnualMWh >= 1000 
+                  ? `${(aggregatedSolarMetrics.mappedAnnualMWh / 1000).toFixed(2)} GWh`
+                  : `${aggregatedSolarMetrics.mappedAnnualMWh.toFixed(1)} MWh`} 
+                <span className="text-xs text-cyan-500">/ano</span>
+              </span>
+              <p className="text-[10px] text-gray-500">Com base na área útil ocupada</p>
+            </div>
+
+            <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1">
+              <span className="text-[10px] text-amber-400 uppercase tracking-wider block">🚀 Potencial Solar Inexplorado</span>
+              <span className="text-2xl font-black text-amber-400 block">
+                {aggregatedSolarMetrics.untappedAnnualMWh >= 1000 
+                  ? `${(aggregatedSolarMetrics.untappedAnnualMWh / 1000).toFixed(2)} GWh`
+                  : `${aggregatedSolarMetrics.untappedAnnualMWh.toFixed(1)} MWh`} 
+                <span className="text-xs text-amber-500">/ano</span>
+              </span>
+              <p className="text-[10px] text-gray-500">Expandindo até {usablePercent}% de área</p>
+            </div>
+          </div>
+
+          {/* Split Content: Controls & Drill-down, and Map Canvas & Terminal */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* LEFT PANEL: DRILL-DOWN & CONTROLS (5 cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* Hierarchical Drill-down Navigation Card */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2 font-mono">
+                    <span>🧭</span> Filtro e Navegação Hierárquica
+                  </h3>
+                  {solarLevel !== 'pais' && (
+                    <button 
+                      onClick={() => {
+                        setSolarLevel('pais');
+                        setSelState(null);
+                        setSelMunicipality(null);
+                        setSelNeighborhood(null);
+                        setSelStreet(null);
+                        setSelBlock(null);
+                      }}
+                      className="text-[10px] font-mono text-gray-400 hover:text-white bg-gray-950 px-2 py-0.5 rounded border border-gray-850 hover:border-gray-700 transition-colors"
+                    >
+                      Resetar p/ Brasil
+                    </button>
+                  )}
+                </div>
+
+                {/* Breadcrumbs */}
+                <div className="bg-gray-950 p-2.5 rounded border border-gray-850 font-mono text-[11px] flex flex-wrap items-center gap-1.5 text-gray-400">
+                  <button 
+                    onClick={() => {
+                      setSolarLevel('pais'); setSelState(null); setSelMunicipality(null); setSelNeighborhood(null); setSelStreet(null); setSelBlock(null);
+                    }}
+                    className={`hover:text-cyan-400 transition-colors ${solarLevel === 'pais' ? 'text-cyan-400 font-bold underline' : ''}`}
+                  >
+                    Brasil
+                  </button>
+
+                  {selState && (
+                    <>
+                      <span className="text-gray-600">&gt;</span>
+                      <button 
+                        onClick={() => {
+                          setSolarLevel('estado'); setSelMunicipality(null); setSelNeighborhood(null); setSelStreet(null); setSelBlock(null);
+                        }}
+                        className={`hover:text-cyan-400 transition-colors ${solarLevel === 'estado' ? 'text-cyan-400 font-bold underline' : ''}`}
+                      >
+                        {selState}
+                      </button>
+                    </>
+                  )}
+
+                  {selMunicipality && (
+                    <>
+                      <span className="text-gray-600">&gt;</span>
+                      <button 
+                        onClick={() => {
+                          setSolarLevel('municipio'); setSelNeighborhood(null); setSelStreet(null); setSelBlock(null);
+                        }}
+                        className={`hover:text-cyan-400 transition-colors ${solarLevel === 'municipio' ? 'text-cyan-400 font-bold underline' : ''}`}
+                      >
+                        {selMunicipality}
+                      </button>
+                    </>
+                  )}
+
+                  {selNeighborhood && (
+                    <>
+                      <span className="text-gray-600">&gt;</span>
+                      <button 
+                        onClick={() => {
+                          setSolarLevel('bairro'); setSelStreet(null); setSelBlock(null);
+                        }}
+                        className={`hover:text-cyan-400 transition-colors ${solarLevel === 'bairro' ? 'text-cyan-400 font-bold underline' : ''}`}
+                      >
+                        {selNeighborhood}
+                      </button>
+                    </>
+                  )}
+
+                  {selStreet && (
+                    <>
+                      <span className="text-gray-600">&gt;</span>
+                      <button 
+                        onClick={() => {
+                          setSolarLevel('rua'); setSelBlock(null);
+                        }}
+                        className={`hover:text-cyan-400 transition-colors ${solarLevel === 'rua' ? 'text-cyan-400 font-bold underline' : ''}`}
+                      >
+                        {selStreet.split(' ').slice(0, 3).join(' ')}
+                      </button>
+                    </>
+                  )}
+
+                  {selBlock && (
+                    <>
+                      <span className="text-gray-600">&gt;</span>
+                      <span className="text-cyan-400 font-bold">
+                        {selBlock}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Level Title and Search */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-xs font-mono">
+                    <span className="text-gray-400">Listando subunidades para:</span>
+                    <span className="text-white font-bold uppercase bg-gray-950 px-2 py-0.5 rounded border border-gray-850">
+                      {solarLevel === 'pais' ? 'Estados' : 
+                       solarLevel === 'estado' ? 'Municípios' : 
+                       solarLevel === 'municipio' ? 'Bairros' : 
+                       solarLevel === 'bairro' ? 'Ruas' : 'Quadras'}
+                    </span>
+                  </div>
+
+                  <input 
+                    type="text"
+                    placeholder="Filtrar opções..."
+                    value={solarSearchQuery}
+                    onChange={(e) => setSolarSearchQuery(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-850 rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                {/* Selector List */}
+                <div className="max-h-60 overflow-y-auto bg-gray-950 border border-gray-850 rounded divide-y divide-gray-850 scrollbar-thin">
+                  {listChildEntities.filter(item => item.name.toLowerCase().includes(solarSearchQuery.toLowerCase())).length > 0 ? (
+                    listChildEntities
+                      .filter(item => item.name.toLowerCase().includes(solarSearchQuery.toLowerCase()))
+                      .map((item) => {
+                        const coveragePercentage = item.potential > 0 ? (item.gen / item.potential) * 100 : 0;
+                        return (
+                          <div 
+                            key={item.value}
+                            className="p-3 hover:bg-gray-900 transition-colors flex flex-col gap-1.5 cursor-pointer"
+                            onClick={() => {
+                              setSolarSearchQuery('');
+                              if (solarLevel === 'pais') {
+                                setSelState(item.value);
+                                setSolarLevel('estado');
+                              } else if (solarLevel === 'estado') {
+                                setSelMunicipality(item.value);
+                                setSolarLevel('municipio');
+                              } else if (solarLevel === 'municipio') {
+                                setSelNeighborhood(item.value);
+                                setSolarLevel('bairro');
+                              } else if (solarLevel === 'bairro') {
+                                setSelStreet(item.value);
+                                setSolarLevel('rua');
+                              } else if (solarLevel === 'rua') {
+                                setSelBlock(item.value);
+                                setSolarLevel('quadra');
+                              }
+                            }}
+                          >
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-bold text-white hover:text-cyan-400 transition-colors">
+                                {solarLevel === 'pais' ? `🇧🇷 Estado ${item.name}` :
+                                 solarLevel === 'estado' ? `🏙️ ${item.name}` :
+                                 solarLevel === 'municipio' ? `🏘️ Bairro ${item.name}` :
+                                 solarLevel === 'bairro' ? `🛣️ Rua ${item.name}` : `🧱 ${item.name}`}
+                              </span>
+                              <span className="font-mono text-cyan-400 text-[11px] font-bold">
+                                {item.gen >= 1000 ? `${(item.gen / 1000).toFixed(2)} GWh` : `${item.gen.toFixed(1)} MWh`}/ano
+                              </span>
+                            </div>
+
+                            {/* Sub details */}
+                            <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono">
+                              <span>Telhados Mapeados: <strong>{item.roofs}</strong></span>
+                              <span>Potencial Máximo: <strong className="text-amber-400">{item.potential >= 1000 ? `${(item.potential / 1000).toFixed(2)} GWh` : `${item.potential.toFixed(1)} MWh`}</strong></span>
+                            </div>
+
+                            {/* Mini progress bar of untapped leverage */}
+                            <div className="space-y-0.5">
+                              <div className="flex justify-between text-[8px] font-mono text-gray-600">
+                                <span>Aproveitamento Atual do Potencial:</span>
+                                <span>{coveragePercentage.toFixed(1)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-900 rounded-full h-1 overflow-hidden border border-gray-800">
+                                <div 
+                                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                                  style={{ width: `${coveragePercentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                  ) : (
+                    <div className="p-4 text-center text-xs text-gray-500 font-mono">
+                      Nenhuma subunidade encontrada com este filtro.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modeling Parametric Configuration Sliders */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 space-y-4 font-mono">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2 border-b border-gray-800 pb-3">
+                  <span>⚙️</span> Parâmetros do Algoritmo de Potencialização
+                </h3>
+                
+                {/* Irradiance Slider */}
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Irradiação Solar Média:</span>
+                    <span className="text-cyan-400 font-bold">{irradiance.toFixed(1)} kWh/m²/dia</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="4.0" 
+                    max="7.0" 
+                    step="0.1"
+                    value={irradiance}
+                    onChange={(e) => setIrradiance(Number(e.target.value))}
+                    className="w-full h-1 bg-gray-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  />
+                  <p className="text-[9px] text-gray-500">Média anual histórica (Teresina ~6.5, Campinas ~5.2)</p>
+                </div>
+
+                {/* Panel Efficiency Slider */}
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Eficiência dos Painéis:</span>
+                    <span className="text-cyan-400 font-bold">{efficiency.toFixed(1)}%</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="15.0" 
+                    max="25.0" 
+                    step="0.5"
+                    value={efficiency}
+                    onChange={(e) => setEfficiency(Number(e.target.value))}
+                    className="w-full h-1 bg-gray-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  />
+                  <p className="text-[9px] text-gray-500">Coeficiente do silício fotovoltaico (Padrão: 20%)</p>
+                </div>
+
+                {/* Performance Ratio (PR) */}
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Performance Ratio (PR):</span>
+                    <span className="text-cyan-400 font-bold">{pr.toFixed(0)}%</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="65" 
+                    max="90" 
+                    step="1"
+                    value={pr}
+                    onChange={(e) => setPr(Number(e.target.value))}
+                    className="w-full h-1 bg-gray-950 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  />
+                  <p className="text-[9px] text-gray-500">Perdas operacionais (inversor, cabeamento, sujidade)</p>
+                </div>
+
+                {/* Suitable Area Target Percentage */}
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Área Útil Alvo do Telhado:</span>
+                    <span className="text-amber-400 font-bold">{usablePercent.toFixed(0)}%</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="20" 
+                    max="80" 
+                    step="5"
+                    value={usablePercent}
+                    onChange={(e) => setUsablePercent(Number(e.target.value))}
+                    className="w-full h-1 bg-gray-950 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                  />
+                  <p className="text-[9px] text-gray-500">Fração do telhado estrutural e inclinação ideal (Mapeamento IA)</p>
+                </div>
+              </div>
+
+              {/* Form Card for custom registration (Use Persistence) */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2 border-b border-gray-800 pb-3 font-mono">
+                  <span>➕</span> Cadastrar & Mapear Nova Quadra (Persistência)
+                </h3>
+
+                <form onSubmit={handleAddLocation} className="space-y-3 font-mono text-xs">
+                  {formError && (
+                    <div className="bg-rose-950/40 border border-rose-800 p-2.5 rounded text-rose-400 text-[10px]">
+                      ⚠️ {formError}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Estado (UF):</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: SP, MG, CE" 
+                        value={formState.state} 
+                        onChange={(e) => setFormState({ ...formState, state: e.target.value })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Município:</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Campinas" 
+                        value={formState.municipality} 
+                        onChange={(e) => setFormState({ ...formState, municipality: e.target.value })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Bairro:</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Moema" 
+                        value={formState.neighborhood} 
+                        onChange={(e) => setFormState({ ...formState, neighborhood: e.target.value })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Logradouro (Rua):</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Av. Paulista" 
+                        value={formState.street} 
+                        onChange={(e) => setFormState({ ...formState, street: e.target.value })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-gray-400 block text-[10px]">Identificação da Quadra / Bloco:</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Quadra Comercial Q5" 
+                      value={formState.block} 
+                      onChange={(e) => setFormState({ ...formState, block: e.target.value })}
+                      className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Telhados Totais:</label>
+                      <input 
+                        type="number" 
+                        value={formState.roofsDetected} 
+                        onChange={(e) => setFormState({ ...formState, roofsDetected: Number(e.target.value) })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Telhados com Painel:</label>
+                      <input 
+                        type="number" 
+                        value={formState.solarRoofs} 
+                        onChange={(e) => setFormState({ ...formState, solarRoofs: Number(e.target.value) })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Área de Telhados (m²):</label>
+                      <input 
+                        type="number" 
+                        value={formState.totalArea} 
+                        onChange={(e) => setFormState({ ...formState, totalArea: Number(e.target.value) })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-gray-400 block text-[10px]">Área Solar Atual (m²):</label>
+                      <input 
+                        type="number" 
+                        value={formState.solarArea} 
+                        onChange={(e) => setFormState({ ...formState, solarArea: Number(e.target.value) })}
+                        className="w-full bg-gray-950 border border-gray-850 rounded p-1.5 text-white outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black py-2 rounded transition-colors text-xs text-center block"
+                  >
+                    🚀 Cadastrar e Executar Scanner IA
+                  </button>
+                </form>
+              </div>
+
+            </div>
+
+            {/* RIGHT PANEL: INTERACTIVE SATELLITE CANVAS & TERMINAL LOGS (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* Satellite Visualization Box */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-gray-800 pb-3">
+                  <div>
+                    <span className="text-[10px] font-mono text-cyan-400 uppercase font-extrabold tracking-widest block">NÍVEL DE RESOLUÇÃO SELECIONADO</span>
+                    <h3 className="text-sm font-bold text-white uppercase font-sans">
+                      {selBlock ? `Quadra: ${selBlock}` :
+                       selStreet ? `Logradouro: ${selStreet}` :
+                       selNeighborhood ? `Bairro: ${selNeighborhood}` :
+                       selMunicipality ? `Município: ${selMunicipality}` :
+                       selState ? `Estado: ${selState}` : 'Escopo Geral: Brasil'}
+                    </h3>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleStartScan(selBlock || undefined)}
+                      disabled={isScanning}
+                      className="px-3 py-1 bg-cyan-950 text-cyan-400 hover:bg-cyan-900 border border-cyan-800 rounded text-xs font-bold font-mono transition-colors disabled:opacity-50"
+                    >
+                      {isScanning ? '🔍 Varrendo Imagem...' : '⚡ Varredura IA'}
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (confirm("Deseja realmente redefinir a base de dados solar para os padrões iniciais?")) {
+                          setSolarMappingDb(DEFAULT_SOLAR_MAPPING_DB);
+                          setSolarLevel('pais');
+                          setSelState(null);
+                          setSelMunicipality(null);
+                          setSelNeighborhood(null);
+                          setSelStreet(null);
+                          setSelBlock(null);
+                        }
+                      }}
+                      className="px-2 py-1 bg-gray-950 hover:bg-gray-900 border border-gray-850 rounded text-xs text-gray-400 hover:text-white font-mono"
+                    >
+                      🔄 Resetar DB
+                    </button>
+                  </div>
+                </div>
+
+                {/* Satellite Viewer SVG Stage */}
+                <div className="relative bg-gray-950 rounded-lg border border-gray-850 h-[380px] overflow-hidden flex flex-col justify-between p-3">
+                  
+                  {/* Sweep Line Overlay for active scan */}
+                  {isScanning && (
+                    <div className="absolute left-0 right-0 h-1 bg-cyan-400 shadow-[0_0_12px_4px_rgba(34,211,238,0.7)] z-10 animate-scan-sweeper"></div>
+                  )}
+
+                  {/* Top Floating details */}
+                  <div className="z-10 bg-gray-900/90 backdrop-blur-sm border border-gray-800 p-2.5 rounded text-[10px] font-mono flex flex-wrap justify-between items-center gap-2">
+                    <span>FONTE DE DADOS: <strong className="text-cyan-400">COPERNICUS SENTINEL ORBITAL</strong></span>
+                    <span>COORDENADAS: <strong className="text-white">-22.9068, -47.0616 (Brasil)</strong></span>
+                  </div>
+
+                  {/* Interactive Top-down SVG Model representational map */}
+                  <div className="w-full flex-grow flex items-center justify-center relative overflow-hidden my-2 select-none">
+                    <svg className="w-full h-full max-h-72" viewBox="0 0 600 300">
+                      {/* Grid Background */}
+                      <defs>
+                        <pattern id="grid-pattern" width="30" height="30" patternUnits="userSpaceOnUse">
+                          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e293b" strokeWidth="0.5" />
+                        </pattern>
+                      </defs>
+                      <rect width="600" height="300" fill="url(#grid-pattern)" />
+                      
+                      {/* Street Roads Simulation */}
+                      <line x1="120" y1="0" x2="120" y2="300" stroke="#334155" strokeWidth="24" strokeOpacity="0.8" />
+                      <line x1="0" y1="150" x2="600" y2="150" stroke="#334155" strokeWidth="24" strokeOpacity="0.8" />
+                      
+                      {/* Mapped Buildings on Grid */}
+                      {/* Left Block Row */}
+                      <g id="block-left-1">
+                        <rect x="25" y="25" width="70" height="40" rx="3" fill="#0f172a" stroke={isScanning ? "#0891b2" : "#1e293b"} strokeWidth="1.5" />
+                        {/* Solar panels overlay */}
+                        <rect x="35" y="30" width="20" height="15" rx="1" fill="#eab308" fillOpacity="0.8" />
+                        <rect x="58" y="30" width="20" height="15" rx="1" fill="#eab308" fillOpacity="0.8" />
+                        <text x="60" y="80" textAnchor="middle" fill="#475569" fontSize="8" fontFamily="monospace">TELHADO #1</text>
+                      </g>
+
+                      <g id="block-left-2">
+                        <rect x="25" y="195" width="70" height="45" rx="3" fill="#0f172a" stroke="#1e293b" strokeWidth="1.5" />
+                        {/* Dotted Untapped suitable potential */}
+                        <rect x="30" y="200" width="60" height="35" rx="2" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 2" />
+                        <text x="60" y="255" textAnchor="middle" fill="#ef4444" fontSize="8" fontFamily="monospace">POTENCIAL #2</text>
+                      </g>
+
+                      {/* Top Right Block Row */}
+                      <g id="block-tr-1">
+                        <rect x="160" y="20" width="110" height="50" rx="3" fill="#0f172a" stroke={isScanning || scanCompletedBlocks[selBlock || ''] ? "#22d3ee" : "#334155"} strokeWidth="1.5" />
+                        <rect x="170" y="28" width="30" height="30" rx="1" fill="#eab308" fillOpacity="0.85" />
+                        <rect x="210" y="28" width="30" height="30" rx="1" fill="#eab308" fillOpacity="0.85" />
+                        <text x="215" y="85" textAnchor="middle" fill="#475569" fontSize="8" fontFamily="monospace">MAP-99143 (JARDINS)</text>
+                      </g>
+
+                      <g id="block-tr-2">
+                        <rect x="300" y="20" width="120" height="55" rx="3" fill="#0f172a" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 2" />
+                        <text x="360" y="90" textAnchor="middle" fill="#ef4444" fontSize="8" fontFamily="monospace">LIVRE (620 m²)</text>
+                      </g>
+
+                      <g id="block-tr-3">
+                        <rect x="450" y="20" width="125" height="50" rx="3" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+                        <rect x="460" y="28" width="40" height="32" rx="1" fill="#eab308" fillOpacity="0.75" />
+                        <text x="512" y="85" textAnchor="middle" fill="#475569" fontSize="8" fontFamily="monospace">TELHADO #4</text>
+                      </g>
+
+                      {/* Bottom Right Block Row */}
+                      <g id="block-br-1">
+                        <rect x="160" y="190" width="95" height="50" rx="3" fill="#0f172a" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 2" />
+                        <text x="207" y="255" textAnchor="middle" fill="#ef4444" fontSize="8" fontFamily="monospace">LIVRE (480 m²)</text>
+                      </g>
+
+                      <g id="block-br-2">
+                        <rect x="280" y="190" width="130" height="55" rx="3" fill="#0f172a" stroke={isScanning || scanCompletedBlocks[selBlock || ''] ? "#22d3ee" : "#334155"} strokeWidth="1.5" />
+                        <rect x="290" y="200" width="35" height="35" rx="1" fill="#eab308" fillOpacity="0.8" />
+                        <rect x="330" y="200" width="35" height="35" rx="1" fill="#eab308" fillOpacity="0.8" />
+                        <rect x="370" y="200" width="30" height="35" rx="1" fill="#eab308" fillOpacity="0.8" />
+                        <text x="345" y="260" textAnchor="middle" fill="#475569" fontSize="8" fontFamily="monospace">MAP-99142 (SAVASSI)</text>
+                      </g>
+
+                      <g id="block-br-3">
+                        <rect x="435" y="190" width="140" height="50" rx="3" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+                        <rect x="445" y="198" width="50" height="30" rx="1" fill="#eab308" fillOpacity="0.6" />
+                        <text x="505" y="255" textAnchor="middle" fill="#475569" fontSize="8" fontFamily="monospace">TELHADO #6</text>
+                      </g>
+
+                      {/* UI HUD lines */}
+                      <line x1="0" y1="0" x2="600" y2="300" stroke="#06b6d4" strokeWidth="0.5" strokeDasharray="10 20" strokeOpacity="0.15" />
+                      <line x1="600" y1="0" x2="0" y2="300" stroke="#06b6d4" strokeWidth="0.5" strokeDasharray="10 20" strokeOpacity="0.15" />
+                    </svg>
+
+                    {/* HUD Scan completed overlay banner */}
+                    {scanCompletedBlocks[selBlock || ''] && !isScanning && (
+                      <div className="absolute inset-0 bg-cyan-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 space-y-3 z-20">
+                        <span className="p-3 bg-cyan-900/60 rounded-full border border-cyan-400 text-cyan-400 font-bold text-xl leading-none">✓</span>
+                        <div className="text-center">
+                          <h4 className="text-white font-bold text-sm uppercase tracking-wider font-mono">Varredura Concluída</h4>
+                          <p className="text-xs text-gray-300 font-sans mt-1">
+                            Modelo **MEX-ObjectMask-v4.2** reconciliou com sucesso a quadra **{selBlock}**.
+                          </p>
+                        </div>
+                        <div className="bg-gray-950 px-3 py-2 rounded border border-gray-800 text-[10px] text-gray-400 font-mono space-y-1">
+                          <p>• Telhados Mapeados: <strong className="text-white">{(aggregatedSolarMetrics.totalRoofs).toLocaleString('pt-BR')} un</strong></p>
+                          <p>• Área Solar Ativa: <strong className="text-emerald-400">{(aggregatedSolarMetrics.totalSolarPanelArea).toLocaleString('pt-BR')} m²</strong></p>
+                          <p>• Geração Atual: <strong className="text-cyan-400">{aggregatedSolarMetrics.mappedAnnualMWh.toFixed(1)} MWh/ano</strong></p>
+                          <p>• Potencial Teórico Adicional: <strong className="text-amber-400">{aggregatedSolarMetrics.untappedAnnualMWh.toFixed(1)} MWh/ano</strong></p>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setScanCompletedBlocks(prev => ({ ...prev, [selBlock || '']: false }));
+                          }}
+                          className="px-3 py-1 bg-gray-900 border border-gray-800 hover:border-gray-700 rounded text-[10px] font-mono hover:text-cyan-400 transition-colors"
+                        >
+                          Visualizar Vetores de Bounding Boxes
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SVG Map Legend */}
+                  <div className="z-10 bg-gray-900/90 backdrop-blur-sm border border-gray-800 p-2 rounded text-[9px] font-mono flex gap-4 justify-center">
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2 bg-yellow-500 rounded-sm"></span> Painéis Solares Ativos</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2 bg-none border border-cyan-500 rounded-sm"></span> Polígono Telhado Mapeado</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2 bg-none border border-dashed border-red-500 rounded-sm"></span> Potencial Solar Inexplorado</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Console Logs / AI Terminal Output */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 space-y-3 font-mono">
+                <div className="flex justify-between items-center border-b border-gray-800 pb-2 text-[10px] text-gray-400">
+                  <span className="font-bold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> Terminal do Scanner de Sensoriamento IA
+                  </span>
+                  <span>STATUS: {isScanning ? 'RUNNING' : 'IDLE'}</span>
+                </div>
+                
+                <div className="bg-gray-950 p-4 rounded border border-gray-850 h-[190px] overflow-y-auto text-[10px] text-gray-300 space-y-1 scrollbar-thin">
+                  {scanLogs.length > 0 ? (
+                    scanLogs.map((log, index) => (
+                      <p 
+                        key={index} 
+                        className={
+                          log.includes('>>') ? 'text-cyan-400' :
+                          log.includes('CONCLUÍDA') ? 'text-emerald-400 font-bold' :
+                          log.includes('Erro') ? 'text-rose-400' : 'text-gray-400'
+                        }
+                      >
+                        {log}
+                      </p>
+                    ))
+                  ) : (
+                    <div className="h-full flex flex-col justify-center items-center text-gray-600 text-[10px] space-y-1 text-center">
+                      <p>Nenhuma varredura orbital ativa no momento.</p>
+                      <p>Clique em "Varredura IA" ou preencha o formulário para testar.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mathematical model summary calculations details */}
+                <div className="bg-gray-950 p-4 rounded border border-gray-850 text-[10px] space-y-2">
+                  <div className="flex justify-between border-b border-gray-900 pb-1.5 text-gray-400">
+                    <span className="font-bold uppercase text-[9px] text-cyan-400">Simulação de Geração Matemática Escalável</span>
+                    <span>METRICAS GERAIS</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="space-y-0.5">
+                      <span className="text-gray-500 block">Irradiação de Referência:</span>
+                      <span className="text-white font-bold">{irradiance} kWh/m²/dia</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-gray-500 block">Eficiência do Painel:</span>
+                      <span className="text-white font-bold">{efficiency}%</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-gray-500 block">Performance Ratio (PR):</span>
+                      <span className="text-white font-bold">{pr}%</span>
+                    </div>
+                    <div className="space-y-0.5 col-span-2">
+                      <span className="text-gray-500 block">Fórmula de Geração Aplicada:</span>
+                      <span className="text-gray-300 font-mono">Energia (MWh) = (Área * Irradiância * Efic. * PR) / 1000</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-gray-500 block">Aproveitamento Alvo:</span>
+                      <span className="text-amber-400 font-bold">{usablePercent}% do telhado</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* TAB: SOLAR MICROGRID 800VDC TIER V */}
+      {activeTab === 'solar-microgrid' && (
+        <div className="space-y-6 animate-fadeIn text-gray-200">
+          {/* Header Banner */}
+          <div className="bg-gradient-to-r from-violet-950/40 via-gray-900 to-gray-950 p-6 rounded-xl border border-gray-800 shadow-xl space-y-3 font-mono">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-violet-950/60 rounded-lg border border-violet-800/40 shadow-lg shadow-violet-500/5">
+                  <span className="text-xl">🔋</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-violet-400 font-extrabold uppercase tracking-widest block">Microredes CC de Alta Disponibilidade - Tier V</span>
+                  <h2 className="text-xl font-black text-white uppercase tracking-tight">Usina Solar & Microrede 800VDC (Off-Grid Completo)</h2>
+                </div>
+              </div>
+              <div className="bg-gray-950 px-4 py-2 rounded-lg border border-gray-850 text-right font-mono text-[10px] text-gray-400 self-start md:self-auto">
+                <span className="text-violet-400 font-bold block">Status do Design: HOMOLOGADO TIER V</span>
+                SLA Sustentado: 99.999%
+              </div>
+            </div>
+            <p className="text-xs text-gray-300 leading-relaxed font-sans">
+              Projete e simule microredes de ultra alta confiabilidade com barramento CC nativo em <strong>800VDC</strong> e climatização HVAC por refrigeração líquida (Liquid Cooling). Essa arquitetura opera em modo <strong>Off-Grid Absoluto</strong> (Zero Diesel e Zero Concessionárias), integrando usinas solares fotovoltaicas dimensionadas por área de rooftop e sistemas de bateria <strong>BESS</strong> para autonomia completa durante períodos noturnos ou nublados.
+            </p>
+          </div>
+
+          {/* Sizing Controls and Main Visualization Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* LEFT COLUMN: PARAMETER CONFIGURATION (4 COLS) */}
+            <div className="lg:col-span-4 space-y-6">
+              
+              <div className="bg-gray-900/85 border border-gray-800 rounded-xl p-5 space-y-4 shadow-md font-mono">
+                <div className="border-b border-gray-800 pb-2.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-violet-400 flex items-center gap-2">
+                    <span>🎛️</span> Parâmetros da Microrede
+                  </h3>
+                </div>
+
+                {/* Stakeholder Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold">Stakeholder Selecionado</label>
+                  <select
+                    value={selectedStakeholder}
+                    onChange={(e) => setSelectedStakeholder(e.target.value)}
+                    className="w-full bg-gray-950 text-white text-xs rounded border border-gray-800 p-2 focus:outline-none focus:border-violet-500"
+                  >
+                    <option value="MEX Data Cloud Consortium">MEX Data Cloud Consortium</option>
+                    <option value="Consórcio ANEEL GD Sul-Sudeste">Consórcio ANEEL GD Sul-Sudeste</option>
+                    <option value="HyperEdge AI">HyperEdge AI (Borda Inteligente)</option>
+                    <option value="GigaGreen Energy">GigaGreen Energy (Investment Fund)</option>
+                    <option value="Telefônica Borda Inteligente">Telefônica Borda Inteligente</option>
+                  </select>
+                </div>
+
+                {/* Rooftop Area (m²) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 uppercase tracking-wider font-extrabold">Área de Telhado (m²)</span>
+                    <span className="text-violet-400 font-bold">{microgridArea.toLocaleString('pt-BR')} m²</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="2000"
+                    max="100000"
+                    step="500"
+                    value={microgridArea}
+                    onChange={(e) => setMicrogridArea(Number(e.target.value))}
+                    className="w-full accent-violet-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="text-[9px] text-gray-500 font-sans">Área total locada para painéis ativos</p>
+                </div>
+
+                {/* Local Irradiance (kWh/m²/dia) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 uppercase tracking-wider font-extrabold">Irradiação Solar Local</span>
+                    <span className="text-violet-400 font-bold">{microgridIrradiance.toFixed(1)} kWh/m²/dia</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="4.0"
+                    max="7.5"
+                    step="0.1"
+                    value={microgridIrradiance}
+                    onChange={(e) => setMicrogridIrradiance(Number(e.target.value))}
+                    className="w-full accent-violet-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="text-[9px] text-gray-500 font-sans">Média de horas de sol pleno diárias</p>
+                </div>
+
+                {/* Panel Efficiency (%) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 uppercase tracking-wider font-extrabold">Eficiência dos Painéis (%)</span>
+                    <span className="text-violet-400 font-bold">{microgridPanelEff.toFixed(1)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="18.0"
+                    max="24.5"
+                    step="0.1"
+                    value={microgridPanelEff}
+                    onChange={(e) => setMicrogridPanelEff(Number(e.target.value))}
+                    className="w-full accent-violet-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="text-[9px] text-gray-500 font-sans">Garantia de eficiência média dos painéis fotovoltaicos</p>
+                </div>
+
+                {/* DC Cloud Nominal Load (kW) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 uppercase tracking-wider font-extrabold">Carga Nominal IT Cloud</span>
+                    <span className="text-violet-400 font-bold">{dataCenterLoad.toLocaleString('pt-BR')} kW</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="100"
+                    max="5000"
+                    step="50"
+                    value={dataCenterLoad}
+                    onChange={(e) => setDataCenterLoad(Number(e.target.value))}
+                    className="w-full accent-violet-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="text-[9px] text-gray-500 font-sans">Consumo contínuo de servidores e switches</p>
+                </div>
+
+                {/* HVAC Liquid Cooling Load (kW) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 uppercase tracking-wider font-extrabold">Carga HVAC Liquid Cooling</span>
+                    <span className="text-violet-400 font-bold">{hvacLiquidCoolingPower.toLocaleString('pt-BR')} kW</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="1500"
+                    step="25"
+                    value={hvacLiquidCoolingPower}
+                    onChange={(e) => setHvacLiquidCoolingPower(Number(e.target.value))}
+                    className="w-full accent-violet-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="text-[9px] text-gray-500 font-sans">Bombas e trocadores térmicos 800VDC</p>
+                </div>
+
+                {/* BESS Autonomy hours (Hours without sun) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="text-gray-400 uppercase tracking-wider font-extrabold">Autonomia BESS (Horas sem Sol)</span>
+                    <span className="text-violet-400 font-bold">{microgridAutonomy} horas</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="4"
+                    max="20"
+                    step="1"
+                    value={microgridAutonomy}
+                    onChange={(e) => setMicrogridAutonomy(Number(e.target.value))}
+                    className="w-full accent-violet-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <p className="text-[9px] text-gray-500 font-sans">Período de sustentação por bateria</p>
+                </div>
+
+                {/* Depth of Discharge & Battery Chemistry */}
+                <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-850">
+                  <div className="space-y-1">
+                    <span className="text-[8px] text-gray-500 uppercase font-extrabold block">Profundidade (DoD %)</span>
+                    <select
+                      value={bessDepthOfDischarge}
+                      onChange={(e) => setBessDepthOfDischarge(Number(e.target.value))}
+                      className="w-full bg-gray-950 text-white text-[10px] rounded border border-gray-850 p-1 focus:outline-none"
+                    >
+                      <option value={80}>80% DoD</option>
+                      <option value={85}>85% DoD</option>
+                      <option value={90}>90% DoD</option>
+                      <option value={95}>95% DoD</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[8px] text-gray-500 uppercase font-extrabold block">Química das Células</span>
+                    <select
+                      value={bessChemistry}
+                      onChange={(e) => setBessChemistry(e.target.value)}
+                      className="w-full bg-gray-950 text-white text-[10px] rounded border border-gray-850 p-1 focus:outline-none"
+                    >
+                      <option value="LFP de Alta Cicabilidade (6.000 ciclos)">Lítio LFP</option>
+                      <option value="Sódio-Íon (Na-Ion) de Alta Estabilidade">Sódio-Íon (Na-Ion)</option>
+                      <option value="Fluxo de Vanádio (Longa Duração)">Fluxo Vanádio</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Standard Tier V Architecture Bulletins */}
+              <div className="bg-gray-950 border border-gray-850 rounded-xl p-5 space-y-3 font-mono text-[10px]">
+                <h4 className="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-850 pb-2">
+                  <span className="text-xs">🛡️</span> Filosofia de Redundância Ativa
+                </h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">✔</span>
+                    <div>
+                      <span className="text-white font-bold block">BARRAMENTO 800VDC INTEGRADO</span>
+                      <p className="text-gray-400 leading-normal font-sans text-[9px]">
+                        Sem inversores CC-CA ou retificadores CA-CC centrais. Conexão direta reduz a pegada térmica e eleva a eficiência global de conversão em 15.5%.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">✔</span>
+                    <div>
+                      <span className="text-white font-bold block">HVAC LIQUID COOLING 800VDC</span>
+                      <p className="text-gray-400 leading-normal font-sans text-[9px]">
+                        Sistema de refrigeração líquida com fluido dielétrico de alta densidade térmica alimentado diretamente pelo barramento contínuo. Economiza 38% de energia em relação a chillers de ar.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">✔</span>
+                    <div>
+                      <span className="text-white font-bold block">ZERO DIESEL (EMISSÕES ESCOPO 1 ZERO)</span>
+                      <p className="text-gray-400 leading-normal font-sans text-[9px]">
+                        Segurança de backup obtida puramente pela redundância química do BESS e sobredimensionamento solar fotovoltaico de segurança.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">✔</span>
+                    <div>
+                      <span className="text-white font-bold block">ZERO CONCESSIONÁRIAS (OFF-GRID REAL)</span>
+                      <p className="text-gray-400 leading-normal font-sans text-[9px]">
+                        Completo isolamento galvânico do Sistema Interligado Nacional (SIN). Imunidade absoluta contra sobretensão na rede, apagões e tarifas de bandeira vermelha.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* RIGHT COLUMN: GRAPHS, FINANCIALS & DYNAMIC DOCUMENTS (8 COLS) */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* Dynamic Microgrid KPIs */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono">
+                <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1 shadow">
+                  <span className="text-[10px] text-gray-400 uppercase block">☀️ Potência Solar</span>
+                  <span className="text-xl font-black text-white block">
+                    {microgridMetrics.nominalPowerMWp.toFixed(2)} <span className="text-xs text-gray-400">MWp</span>
+                  </span>
+                  <p className="text-[9px] text-violet-400">{(microgridArea / 2).toLocaleString('pt-BR')} painéis ativos</p>
+                </div>
+
+                <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1 shadow">
+                  <span className="text-[10px] text-violet-400 uppercase block">🔋 Sizing do BESS</span>
+                  <span className="text-xl font-black text-violet-400 block">
+                    {microgridMetrics.sizedBessCapacityMWh.toFixed(2)} <span className="text-xs text-violet-500">MWh</span>
+                  </span>
+                  <p className="text-[9px] text-gray-500">{microgridMetrics.bessPowerMW.toFixed(2)} MW potência de saída</p>
+                </div>
+
+                <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1 shadow">
+                  <span className="text-[10px] text-cyan-400 uppercase block">⚡ Carga Contínua CC</span>
+                  <span className="text-xl font-black text-cyan-400 block">
+                    {microgridMetrics.totalLoadKW.toLocaleString('pt-BR')} <span className="text-xs text-cyan-500">kW</span>
+                  </span>
+                  <p className="text-[9px] text-gray-500">IT: {dataCenterLoad}kW | HVAC: {hvacLiquidCoolingPower}kW</p>
+                </div>
+
+                <div className="bg-gray-900/80 p-4 rounded-xl border border-gray-800 space-y-1 shadow">
+                  <span className="text-[10px] text-emerald-400 uppercase block">🛡️ Perdas Evitadas</span>
+                  <span className="text-xl font-black text-emerald-400 block">
+                    {microgridMetrics.totalAnnualSavedMWh.toFixed(1)} <span className="text-xs text-emerald-500">MWh</span>
+                  </span>
+                  <p className="text-[9px] text-gray-500">Economia energética anual</p>
+                </div>
+              </div>
+
+              {/* Chart: 24h Energy Balance Simulation */}
+              <DashboardCard className="p-5 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-800 pb-3 font-mono">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                      <span>📊</span> Balanço de Carga e Geração Fotovoltaica em Tempo Real (Ciclo 24h)
+                    </h3>
+                    <p className="text-[10px] text-gray-400 font-sans mt-0.5">Simulação de consumo sustentado e carregamento químico de baterias sem apoio do grid</p>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setIsSimulatingMicrogrid(true);
+                      setMicrogridSimulationLog([]);
+                      const logs = [
+                        `[SYS_INIT] Iniciando simulação de microrede off-grid para o stakeholder [${selectedStakeholder}].`,
+                        `[CONFIG] Parâmetros consolidados: Área de ${microgridArea.toLocaleString('pt-BR')} m², Potência Fotovoltaica de ${microgridMetrics.nominalPowerMWp.toFixed(2)} MWp.`,
+                        `[SENSING] Irradiação local configurada em ${microgridIrradiance} kWh/m²/dia. Geração diária estimada de ${microgridMetrics.dailyGenMWh.toFixed(2)} MWh.`,
+                        `[BESS_SIZING] Capacidade de Armazenamento calculada para suportar ${microgridAutonomy}h de período sem sol: ${microgridMetrics.sizedBessCapacityMWh.toFixed(2)} MWh.`,
+                        `[ZERO_DIESEL] Filosofia de redundância ativa: Carga combinada de ${(dataCenterLoad + hvacLiquidCoolingPower)} kW sustentada 100% via Solar + BESS. Zero Diesel operando.`,
+                        `[800VDC] Barramento CC em 800V verificado. Evitada perda de conversão AC/DC de ${microgridMetrics.annualDCBusSavingsMWh.toFixed(1)} MWh/ano.`,
+                        `[HVAC_LIQUID] Resfriamento Líquido de Racks acoplado ao barramento de 800V. Eficiência auxiliar: economia de ${microgridMetrics.annualCoolingSavingsMWh.toFixed(1)} MWh/ano.`,
+                        `[FINANCIAL] CAPEX total estimado: R$ ${(microgridMetrics.totalCapexBRL / 1e6).toFixed(2)}M. OPEX anual: R$ ${(microgridMetrics.totalOpexBRL / 1e3).toFixed(1)}k. Payback: ${microgridMetrics.simplePaybackYears.toFixed(1)} anos.`,
+                        `[COMPLETED] Simulação de ciclo de 24h concluída com SLA sustentado de 99,999% (Padrão Tier V).`
+                      ];
+
+                      let i = 0;
+                      const interval = setInterval(() => {
+                        if (i < logs.length) {
+                          setMicrogridSimulationLog(prev => [...prev, logs[i]]);
+                          i++;
+                        } else {
+                          clearInterval(interval);
+                          setIsSimulatingMicrogrid(false);
+                        }
+                      }, 300);
+                    }}
+                    disabled={isSimulatingMicrogrid}
+                    className={`px-3 py-1.5 text-[10px] font-extrabold uppercase rounded border transition-all flex items-center gap-1.5 ${
+                      isSimulatingMicrogrid 
+                        ? 'bg-violet-950/40 text-violet-400 border-violet-800/40 cursor-not-allowed' 
+                        : 'bg-violet-600 hover:bg-violet-500 text-white border-violet-500 shadow-md shadow-violet-600/10'
+                    }`}
+                  >
+                    <span>{isSimulatingMicrogrid ? '⏳ Simulando...' : '⚙️ Simular Ciclo Off-Grid'}</span>
+                  </button>
+                </div>
+
+                {/* Simulation Logs Terminal */}
+                {microgridSimulationLog.length > 0 && (
+                  <div className="bg-gray-950 p-3 rounded-lg border border-gray-850 font-mono text-[9px] space-y-1 max-h-36 overflow-y-auto">
+                    <div className="flex justify-between items-center text-[8px] text-violet-400 border-b border-gray-850 pb-1.5 mb-1.5">
+                      <span>🖥️ CONSOLE DE SIZING E TELEMETRIA DA USINA OFF-GRID TIER V</span>
+                      <span className="animate-pulse text-red-400">● LIVE RUNNING</span>
+                    </div>
+                    {microgridSimulationLog.map((log, index) => (
+                      <p 
+                        key={index} 
+                        className={
+                          log.includes('[SYS_INIT]') ? 'text-violet-400' :
+                          log.includes('[ZERO_DIESEL]') ? 'text-amber-400 font-bold' :
+                          log.includes('[800VDC]') ? 'text-cyan-400' :
+                          log.includes('[HVAC_LIQUID]') ? 'text-teal-400' :
+                          log.includes('[COMPLETED]') ? 'text-emerald-400 font-black' : 'text-gray-300'
+                        }
+                      >
+                        {log}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                {/* Recharts Component */}
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={chart24hData}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorGen" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25}/>
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0}/>
+                        </linearGradient>
+                        <linearGradient id="colorLoad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a35" />
+                      <XAxis dataKey="hour" stroke="#9ca3af" fontSize={9} />
+                      <YAxis stroke="#9ca3af" fontSize={9} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0b0b14', borderColor: '#2e2e3d', color: '#fff', fontSize: '10px', fontFamily: 'monospace' }}
+                        labelStyle={{ color: '#8b5cf6', fontWeight: 'bold' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace', color: '#9ca3af' }} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="Geração Solar (kW)" 
+                        stroke="#8b5cf6" 
+                        fillOpacity={1} 
+                        fill="url(#colorGen)" 
+                        strokeWidth={2.5}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="Carga Cloud + HVAC (kW)" 
+                        stroke="#06b6d4" 
+                        fillOpacity={1} 
+                        fill="url(#colorLoad)" 
+                        strokeWidth={2}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="Bateria SOC (%)" 
+                        stroke="#10b981" 
+                        strokeWidth={2} 
+                        dot={false}
+                        strokeDasharray="4 4"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </DashboardCard>
+
+              {/* Viabilidade Financeira (CAPEX, OPEX, ROI) */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 shadow-lg space-y-4">
+                <div className="border-b border-gray-800 pb-2.5 font-mono">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                    <span>💰</span> Relatório de Viabilidade Financeira e Capex / Opex / ROI
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 font-mono text-xs">
+                  {/* CAPEX Table */}
+                  <div className="space-y-2 bg-gray-950 p-4 rounded-lg border border-gray-850">
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block border-b border-gray-850 pb-1">Orçamento de CAPEX Estimado</span>
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex justify-between items-center text-gray-300">
+                        <span>☀️ Módulos & Cabling Sol</span>
+                        <span className="text-white">R$ {microgridMetrics.solarCapexBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-gray-300">
+                        <span>🔋 Banco de Baterias BESS</span>
+                        <span className="text-white">R$ {microgridMetrics.bessCapexBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-gray-300">
+                        <span>🔌 Barramento 800VDC & QDs</span>
+                        <span className="text-white">R$ {microgridMetrics.dcBusCapexBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-gray-300">
+                        <span>❄️ HVAC Liquid Cooling Sol.</span>
+                        <span className="text-white">R$ {microgridMetrics.coolingCapexBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-emerald-400 font-extrabold border-t border-gray-850 pt-1.5 text-[11px]">
+                        <span>💸 INVESTIMENTO TOTAL (CAPEX)</span>
+                        <span>R$ {microgridMetrics.totalCapexBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* OPEX & Savings Table */}
+                  <div className="space-y-2 bg-gray-950 p-4 rounded-lg border border-gray-850">
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block border-b border-gray-850 pb-1">OPEX Anual e Retorno Financeiro</span>
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex justify-between items-center text-gray-300">
+                        <span>🏢 Locação de Telhado (m²)</span>
+                        <span className="text-white">R$ {microgridMetrics.annualLeaseFeeBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/ano</span>
+                      </div>
+                      <div className="flex justify-between items-center text-gray-300">
+                        <span>🛠️ Manutenção Operativa (O&M)</span>
+                        <span className="text-white">R$ {microgridMetrics.annualOMCostBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/ano</span>
+                      </div>
+                      <div className="flex justify-between items-center text-gray-400 border-t border-gray-850 pt-1">
+                        <span>⚡ Custo Equivalente Concessionária</span>
+                        <span>R$ {microgridMetrics.standardGridAnnualCostBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/ano</span>
+                      </div>
+                      <div className="flex justify-between items-center text-emerald-400 font-extrabold border-t border-gray-850 pt-1 text-[11px]">
+                        <span>🛡️ ECONOMIA ANUAL ESTIMADA</span>
+                        <span>R$ {microgridMetrics.annualSavingsBRL.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/ano</span>
+                      </div>
+                      <div className="flex justify-between items-center text-violet-400 font-bold text-[11px]">
+                        <span>⏱️ PAYBACK SIMPLES</span>
+                        <span>{microgridMetrics.simplePaybackYears.toFixed(1)} anos</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Key Indicators Bar */}
+                <div className="grid grid-cols-3 gap-4 bg-gray-950 p-3.5 rounded-lg border border-gray-850 text-center font-mono">
+                  <div className="space-y-0.5">
+                    <span className="text-[9px] text-gray-400 block uppercase">ROI (10 Anos)</span>
+                    <span className="text-lg font-black text-emerald-400">+{microgridMetrics.roiPercent10Years.toFixed(1)}%</span>
+                  </div>
+                  <div className="space-y-0.5 border-x border-gray-850">
+                    <span className="text-[9px] text-gray-400 block uppercase">TIR Operacional (IRR)</span>
+                    <span className="text-lg font-black text-cyan-400">{microgridMetrics.irrPercent.toFixed(1)}%</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[9px] text-gray-400 block uppercase">Bandeira Energética</span>
+                    <span className="text-lg font-black text-purple-400">ZERO CUSTO</span>
+                  </div>
+                </div>
+
+                {/* Potential Customers Segment */}
+                <div className="space-y-2 pt-2">
+                  <span className="text-[10px] text-gray-400 font-mono uppercase tracking-wider font-extrabold block">🚀 Carteira de Clientes Potenciais da Microrede</span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="bg-gray-950 p-3 rounded-lg border border-gray-850 font-sans text-xs space-y-1">
+                      <span className="font-mono text-[10px] text-cyan-400 font-bold block">💻 Datacenters de Borda IA</span>
+                      <p className="text-gray-400 text-[10px] leading-relaxed">
+                        Provedores de nuvens de inferência de baixa latência e treinamento leve de LLMs locais que necessitam de barramento CC 800V direto sem distorções de harmônicos.
+                      </p>
+                    </div>
+                    <div className="bg-gray-950 p-3 rounded-lg border border-gray-850 font-sans text-xs space-y-1">
+                      <span className="font-mono text-[10px] text-violet-400 font-bold block">📡 Estações Core 5G Isoladas</span>
+                      <p className="text-gray-400 text-[10px] leading-relaxed">
+                        Nós centrais de telecomunicações fora de redes metropolitanas que dependem de 100% de disponibilidade, eliminando a dependência de diesel logístico.
+                      </p>
+                    </div>
+                    <div className="bg-gray-950 p-3 rounded-lg border border-gray-850 font-sans text-xs space-y-1">
+                      <span className="font-mono text-[10px] text-emerald-400 font-bold block">🛡️ Instalações Estratégicas Gov</span>
+                      <p className="text-gray-400 text-[10px] leading-relaxed">
+                        Servidores soberanos de alta confidencialidade governamental isolados da rede pública nacional contra ataques eletromagnéticos e apagões em cascata.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Document and Legal Contracts Viewer Section */}
+              <div className="bg-gray-900/80 border border-gray-800 rounded-xl p-5 shadow-lg space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-800 pb-3 font-mono">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-violet-400 flex items-center gap-2">
+                      <span>📄</span> Documentação Legal, Construção EPC e Comissionamento Tier V
+                    </h3>
+                    <p className="text-[10px] text-gray-400 font-sans mt-0.5">Clique nas abas para revisar os contratos dinamicamente gerados com base na usina configurada</p>
+                  </div>
+                </div>
+
+                {/* Sub-tabs selectors for docs */}
+                <div className="flex flex-wrap border-b border-gray-800 pb-1.5 gap-2 font-mono text-[10px]">
+                  <button
+                    onClick={() => setActiveDocSection('commissioning')}
+                    className={`px-3 py-1.5 rounded transition-all font-bold ${
+                      activeDocSection === 'commissioning'
+                        ? 'bg-violet-950 text-violet-400 border border-violet-800/50 shadow'
+                        : 'text-gray-400 hover:text-white bg-gray-950 border border-transparent'
+                    }`}
+                  >
+                    📋 Comissionamento Tier V
+                  </button>
+                  <button
+                    onClick={() => setActiveDocSection('lease')}
+                    className={`px-3 py-1.5 rounded transition-all font-bold ${
+                      activeDocSection === 'lease'
+                        ? 'bg-violet-950 text-violet-400 border border-violet-800/50 shadow'
+                        : 'text-gray-400 hover:text-white bg-gray-950 border border-transparent'
+                    }`}
+                  >
+                    📝 Contrato de Locação (Telhado)
+                  </button>
+                  <button
+                    onClick={() => setActiveDocSection('epc')}
+                    className={`px-3 py-1.5 rounded transition-all font-bold ${
+                      activeDocSection === 'epc'
+                        ? 'bg-violet-950 text-violet-400 border border-violet-800/50 shadow'
+                        : 'text-gray-400 hover:text-white bg-gray-950 border border-transparent'
+                    }`}
+                  >
+                    🏗️ Contrato Construtivo EPC
+                  </button>
+                  <button
+                    onClick={() => setActiveDocSection('commercial')}
+                    className={`px-3 py-1.5 rounded transition-all font-bold ${
+                      activeDocSection === 'commercial'
+                        ? 'bg-violet-950 text-violet-400 border border-violet-800/50 shadow'
+                        : 'text-gray-400 hover:text-white bg-gray-950 border border-transparent'
+                    }`}
+                  >
+                    🤝 Contrato Comercial (PPA)
+                  </button>
+                </div>
+
+                {/* Document Area */}
+                <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto scrollbar-thin select-text">
+                  {activeDocSection === 'commissioning' && (
+                    `PLANO DE COMISSIONAMENTO OPERACIONAL - PADRÃO TIER V DE ALTA DISPONIBILIDADE
+MICROREDE DISTRIBUÍDA 800VDC COM ZERO DIESEL & ZERO CONCESSIONÁRIA
+
+1. ESCOPO E FILOSOFIA DE OPERAÇÃO
+Este documento rege o procedimento formal de comissionamento e homologação operacional para a Usina Solar e Microrede de Backup de Ultra Alta Confiabilidade instalada para atender a infraestrutura de Data Cloud Distribuído do stakeholder [${selectedStakeholder}]. A planta foi dimensionada com área fotovoltaica ativa de [${microgridArea.toLocaleString('pt-BR')} m²], potência pico de [${microgridMetrics.nominalPowerMWp.toFixed(2)} MWp] e armazenamento BESS acoplado em barramento contínuo de 800VDC com capacidade de [${microgridMetrics.sizedBessCapacityMWh.toFixed(2)} MWh].
+Sob a filosofia "Zero Diesel" e "Zero Concessionárias", o projeto elimina completamente geradores a diesel de backup e conexões com distribuidoras locais de distribuição, garantindo um SLA de disponibilidade contínua de 99,999% (Padrão Tier V) por meio da redundância física N+N de bancos LFP e anéis de barramento CC.
+
+2. PROTOCOLOS DE TESTE EM CAMPO
+2.1 Teste de Partida a Frio (Black Start)
+- Objetivo: Garantir que a microrede seja capaz de reinicializar de forma autônoma após um desligamento total de manutenção, sem necessidade de injeção de energia externa da concessionária ou gerador auxiliar diesel.
+- Procedimento: Desconectar todo o circuito de geração. Drenar as baterias até o limite operacional inferior. Iniciar o sistema de gerenciamento de energia (EMS) utilizando a célula de inércia eletroquímica preliminar de estado sólido. Ativar o controle de rampa de carga CC e sincronizar os inversores de acoplamento direto de 800VDC.
+- Critério de Aceitação: Restabelecimento completo do barramento de 800VDC em menos de 180 segundos.
+
+2.2 Teste de Transição Rápida de Carga (Dynamic Power Response)
+- Objetivo: Validar a estabilidade do barramento de 800VDC e a resposta de frequência virtual do sistema durante degraus de carga severos de até [${microgridMetrics.totalLoadKW.toFixed(0)} kW].
+- Procedimento: Com o sistema operando em modo isolado sustentado, injetar carga simulada instantânea correspondente ao consumo nominal do Data Cloud ([${dataCenterLoad} kW]) e do sistema de HVAC Liquid Cooling ([${hvacLiquidCoolingPower} kW]).
+- Critério de Aceitação: A flutuação de tensão no barramento CC de 800V não deve exceder +/- 2% (limite de 16V de ripple). Estabilização em menos de 4ms.
+
+2.3 Teste de Estanqueidade e Fluxo de Liquid Cooling 800VDC
+- Objetivo: Validar a operação do sistema HVAC de refrigeração líquida com fluido dielétrico de alta eficiência energética alimentado diretamente em CC.
+- Procedimento: Executar ciclos de pressurização nas linhas de distribuição de líquido refrigerante. Testar as bombas helicoidais de velocidade variável conectadas ao barramento de 800VDC. Monitorar a transferência térmica nos trocadores de calor instalados nos racks de servidores de alta densidade.
+- Critério de Aceitação: Zero queda de pressão nas linhas de fluido dielétrico por 24h contínuas. Eficiência térmica mantendo a temperatura de junção dos chips de processamento abaixo de 62°C com COP operacional mínimo de 5.5.
+
+3. SINALIZAÇÃO DE ENTREGA OPERACIONAL (SIGN-OFF)
+Por meio desta, os engenheiros certificadores atestam que a microrede isolada do SIN atende a todos os critérios de disponibilidade e segurança do padrão Tier V de Datacenters de Borda Sustentáveis.`
+                  )}
+                  {activeDocSection === 'lease' && (
+                    `INSTRUMENTO PARTICULAR DE LOCAÇÃO DE ÁREA ÚTIL DE TELHADO (ROOFTOP LEASING)
+
+LOCADOR: Proprietário do Ativo Imobiliário Industrial / Comercial Selecionado.
+LOCATÁRIO: [${selectedStakeholder}] (Consórcio de Operação de Data Cloud Distribuído).
+
+CLÁUSULA PRIMEIRA - DO OBJETO E FINALIDADE
+O LOCADOR cede para uso exclusivo do LOCATÁRIO a área útil de cobertura (rooftop) de [${microgridArea.toLocaleString('pt-BR')} m²], livre de sombras e impedimentos físicos, de sua propriedade, destinada única e exclusivamente para a instalação, manutenção e operação de usina geradora de energia fotovoltaica descentralizada com potência nominal de [${microgridMetrics.nominalPowerMWp.toFixed(2)} MWp], barramento contínuo de 800VDC e infraestrutura acessória de Battery Energy Storage System (BESS) de [${microgridMetrics.sizedBessCapacityMWh.toFixed(2)} MWh].
+
+CLÁUSULA SEGUNDA - DO PRAZO CONTRATUAL
+A presente locação é ajustada pelo prazo determinado de 20 (vinte) anos, contados a partir da data de assinatura deste instrumento, renovável automaticamente por igual período, salvo manifestação em contrário de qualquer das partes com antecedência mínima de 180 (cento e oitenta) dias do termo final.
+
+CLÁUSULA TERCEIRA - DO VALOR AND DO REAJUSTE
+Como contraprestação pelo uso da área útil de telhado, o LOCATÁRIO pagará mensalmente ao LOCADOR o valor correspondente a R$ ${(microgridMetrics.annualLeaseFeeBRL / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (calculado à base anual de R$ 25,00 por metro quadrado locado). O valor mensal sofrerá reajuste anual com base na variação acumulada do Índice de Preços ao Consumidor Amplo (IPCA/IBGE).
+
+CLÁUSULA QUARTA - DAS RESPONSABILIDADES SOBRE A ESTRUTURA E IMPERMEABILIZAÇÃO
+O LOCADOR garante a higidez estrutural e a capacidade de carga de sobrepeso do telhado locado (mínimo de 25 kg/m² para suportar as estruturas fotovoltaicas). Caberá ao LOCATÁRIO executar os serviços de impermeabilização da área antes da fixação das estruturas e garantir que não haverá infiltrações causadas pelas fundações dos painéis solares.
+
+CLÁUSULA QUINTA - DO LIVRE ACESSO E SEGURANÇA FISICA
+O LOCADOR outorga ao LOCATÁRIO e suas equipes técnicas terceirizadas direito de acesso irrestrito e incondicional, 24 horas por dia, 7 dias por semana, à área locada para fins de manutenção preventiva, preditiva e corretiva da usina solar e barramento 800VDC.`
+                  )}
+                  {activeDocSection === 'epc' && (
+                    `CONTRATO DE ENGENHARIA, AQUISIÇÃO, CONSTRUÇÃO E INSTALAÇÃO (EPC TURNKEY)
+
+CONTRATANTE: [${selectedStakeholder}]
+CONTRATADO: Consórcio Construtor de Microredes Avançadas BR.
+
+CLÁUSULA PRIMEIRA - ESCOPO DOS TRABALHOS (TURNKEY OFF-GRID)
+O CONTRATADO obriga-se perante o CONTRATANTE a executar, sob regime de empreitada integral (turnkey), o projeto de engenharia, licenciamento, aquisição de equipamentos, montagem eletromecânica, teste e entrega operacional da Usina Solar e Microrede 800VDC Tier V Isolada, compreendendo:
+- Sistema Fotovoltaico Ativo com capacidade pico de [${microgridMetrics.nominalPowerMWp.toFixed(2)} MWp] com painéis de alta eficiência ([${microgridPanelEff}%]) e inversores especiais de acoplamento CC de alta tensão.
+- Central de Armazenamento de Energia por Bateria (BESS) em contêiner refrigerado com capacidade total de [${microgridMetrics.sizedBessCapacityMWh.toFixed(2)} MWh] ([${bessChemistry}]).
+- Barramento de Cobre Eletrolítico Integrado de 800VDC com comutadores estáticos e quadros de controle inteligentes.
+- Sistema HVAC Liquid Cooling de ultra eficiência energética com trocadores de calor a placa dielétrica integrados para resfriamento de racks servidores.
+
+CLÁUSULA SEGUNDA - PREÇO E CRONOGRAMA DE PAGAMENTOS
+O preço total global para a execução das obras e fornecimento turnkey de todos os equipamentos é de R$ ${microgridMetrics.totalCapexBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, dividido da seguinte forma:
+- Equipamentos Fotovoltaicos (Módulos, Estruturas, Conversores CC/CC): R$ ${microgridMetrics.solarCapexBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Central de Armazenamento BESS LFP: R$ ${microgridMetrics.bessCapexBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Barramento de Cobre 800VDC & Chaves Estáticas: R$ ${microgridMetrics.dcBusCapexBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Sistema HVAC de Refrigeração Líquida (Liquid Cooling): R$ ${microgridMetrics.coolingCapexBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+CLÁUSULA TERCEIRA - GARANTIA DE PERFORMANCE (PERFORMANCE RATIO)
+O CONTRATADO garante que o Performance Ratio (PR) anualizado da usina fotovoltaica acoplada ao barramento 800VDC não será inferior a 91%. Adicionalmente, o banco de baterias BESS deve manter uma capacidade de retenção de carga mínima de 80% após 10 (dez) anos de operação cíclica contínua de carga e descarga diária.`
+                  )}
+                  {activeDocSection === 'commercial' && (
+                    `CONTRATO COMERCIAL DE FORNESIMENTO DE ENERGIA OFF-GRID EM CC (DIRECT DC PPA)
+
+VENDEDOR: [${selectedStakeholder}] (Operador da Microrede Sustentável).
+COMPRADOR: Usuários de Infraestrutura Data Cloud e Servidores de Alta Densidade IA.
+
+CLÁUSULA PRIMEIRA - DO OBJETO DO FORNECIMENTO
+O VENDEDOR fornecerá em caráter contínuo, seguro e exclusivo, energia elétrica em Corrente Contínua (CC) estabilizada em barramento de alta tensão de 800VDC e serviços integrados de resfriamento líquido de racks (HVAC Liquid Cooling) para alimentar os servidores de processamento intensivo do COMPRADOR, gerados de forma 100% isolada e off-grid (sem conexão com a concessionária local de energia e sem geradores diesel de apoio).
+
+CLÁUSULA SEGUNDA - DA DISPONIBILIDADE E SLA TIER V
+O VENDEDOR garante ao COMPRADOR uma disponibilidade física e elétrica contínua de fornecimento de 99,999% medida mensalmente (padrão de confiabilidade Tier V). Interrupções acumuladas superiores a 5,26 minutos ao longo de um único mês calendário ensejarão multas punitivas de 10% sobre o faturamento contratual, sem prejuízo da indenização por perdas e danos aos dados dos usuários.
+
+CLÁUSULA TERCEIRA - DAS TARIFAS E CRITÉRIOS DE MEDIÇÃO
+A remuneração dos serviços de energia e climatização dielétrica líquida será baseada em uma estrutura híbrida:
+- Parcela de Demanda Contratada: R$ 350,00 por kW contratado por mês, aplicável sobre a capacidade nominal de [${microgridMetrics.totalLoadKW.toFixed(0)} kW] (Datacenter + Liquid Cooling).
+- Parcela de Consumo Medido: R$ 0,85 por kWh líquido consumido no barramento CC de 800VDC.
+A medição será realizada por meio de medidores de corrente contínua bidirecionais de alta precisão classe 0.2S instalados nas saídas de rack.
+
+CLÁUSULA QUARTA - GARANTIA DE ZERO EMISSÕES DE CARBONO
+O VENDEDOR assegura que 100% do fornecimento energético contratado provém da combinação fotovoltaica e BESS, com zero queima de combustíveis fósseis (Zero Diesel) e zero importação da matriz do SIN, gerando créditos de neutralização de carbono de escopo 1 e 2 integralmente transferidos em benefício do COMPRADOR.`
+                  )}
+                </div>
+
+                {/* Print/Download Button Action */}
+                <div className="flex justify-end pt-1 font-mono">
+                  <button
+                    onClick={() => {
+                      alert(`Exportação simulada: O documento para [${selectedStakeholder}] foi gerado com sucesso sob padrão criptográfico SHA-256.`);
+                    }}
+                    className="px-3.5 py-2 text-[10px] font-extrabold uppercase bg-gray-900 border border-gray-800 rounded hover:bg-gray-850 hover:text-white transition-all flex items-center gap-1.5"
+                  >
+                    <span>📥</span> Exportar PDF / Assinar Digitalmente
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
         </div>
       )}
 
