@@ -1105,6 +1105,7 @@ export const OnsAneelGrid: React.FC<{
   const [thermalDispatch, setThermalDispatch] = useState('Despacho Médio (Gás & Etanol)');
 
   // DESSEM hourly dispatch simulator states
+  const [dessemPeriod, setDessemPeriod] = useState<'realtime' | 'daily' | 'monthly' | 'annual'>('daily');
   const [dessemAiCompensation, setDessemAiCompensation] = useState(false);
   const [dessemUnmappedGdPower, setDessemUnmappedGdPower] = useState(18500); // in MW (default 18.5 GW out of 30GW total GD is unmapped)
   const [dessemSimulating, setDessemSimulating] = useState(false);
@@ -1117,122 +1118,394 @@ export const OnsAneelGrid: React.FC<{
     setDessemLogs(prev => [`[${timeStr}] ${message}`, ...prev]);
   };
 
-  // Run a complete 24h dispatch simulation for DESSEM
+  // Run a complete dispatch simulation for DESSEM based on selected period
   const handleRunDessemSimulation = () => {
     setDessemSimulating(true);
     setDessemLogs([]);
     setDessemSimulationHour(0);
     
     let hour = 0;
-    addDessemLog("⚡ INICIANDO DESPACHO HORÁRIO DESSEM (Mapeamento ONS) ⚡");
-    addDessemLog(`Configuração: ${dessemUnmappedGdPower.toLocaleString()} MW de Solar GD em campo.`);
-    addDessemLog(`Compensação de Visão Computacional (MEX IA): ${dessemAiCompensation ? 'ATIVADA (Acurácia nominal 100%)' : 'DESATIVADA (Solar GD Invisível!)'}`);
+    
+    if (dessemPeriod === 'realtime') {
+      addDessemLog("⏱ INICIANDO VARREDURA EM TEMPO REAL DESSEM (5m em 5m) ⚡");
+      addDessemLog(`Capacidade Ativa: ${dessemUnmappedGdPower.toLocaleString()} MW de Solar GD.`);
+      addDessemLog(`Visão Computacional: ${dessemAiCompensation ? 'ATIVADA (Estabilidade de frequência nominal)' : 'DESATIVADA (Flutuações invisíveis!)'}`);
+      
+      const runRealtimeStep = () => {
+        if (hour < 24) {
+          setDessemSimulationHour(hour);
+          const minAgo = (23 - hour) * 5;
+          const label = minAgo === 0 ? 'Agora' : `-${minAgo}m`;
+          
+          if (dessemAiCompensation) {
+            addDessemLog(`[LIVE] T${label === 'Agora' ? ' 0m' : ` ${label}`}: Frequência estável (60.01 Hz). IA amortizou flutuação meteorológica de GD.`);
+          } else {
+            addDessemLog(`[LIVE] T${label === 'Agora' ? ' 0m' : ` ${label}`}: Oscilação detectada. Transmissão sobrecarregada por carga fantasma. CMO instável.`);
+          }
+          hour++;
+          setTimeout(runRealtimeStep, 100);
+        } else {
+          setDessemSimulationHour(null);
+          setDessemSimulating(false);
+          addDessemLog("✓ PROCESSO CONCLUÍDO - Varredura de tempo real finalizada com sucesso.");
+          if (dessemAiCompensation) {
+            addDessemLog("🏆 RESULTADO: Amortecimento de rampa dinâmico evitou ativação de térmicas rotativas de alta tarifa.");
+          } else {
+            addDessemLog("⚠ ALERTA: Frequência atingiu limite operacional inferior (59.85 Hz) devido a nuvens não previstas.");
+          }
+        }
+      };
+      setTimeout(runRealtimeStep, 100);
+      return;
+    }
 
-    const runHourStep = () => {
-      if (hour < 24) {
-        setDessemSimulationHour(hour);
-        const solarFactor = hour >= 6 && hour <= 17 ? Math.sin((hour - 6) * Math.PI / 11) : 0;
-        const actualSolarGd = Math.round(dessemUnmappedGdPower * solarFactor);
-        const grossDemand = [55, 51, 48, 46, 46, 48, 53, 58, 65, 70, 73, 75, 74, 75, 77, 76, 75, 76, 82, 84, 82, 78, 70, 62][hour] * 1000;
-        
-        if (dessemAiCompensation) {
-          const plannedNetLoad = grossDemand - actualSolarGd;
-          addDessemLog(`Hora ${hour.toString().padStart(2, '0')}:00 - Demanda real de ${grossDemand.toLocaleString()} MW. IA mapeou ${actualSolarGd.toLocaleString()} MW de Solar GD. Carga líquida planejada: ${plannedNetLoad.toLocaleString()} MW.`);
-          if (hour >= 11 && hour <= 14) {
-            addDessemLog(`>> [OTIMIZAÇÃO] Reduzindo geração hidráulica para armazenar água e poupar térmicas.`);
-          } else if (hour >= 18 && hour <= 20) {
-            addDessemLog(`>> [SUCESSO] Rampa de fim de tarde suportada 100% por hidrelétricas descansadas. CMO estável.`);
+    if (dessemPeriod === 'daily') {
+      addDessemLog("📅 INICIANDO DESPACHO DIÁRIO HORÁRIO DESSEM ⚡");
+      addDessemLog(`Configuração: ${dessemUnmappedGdPower.toLocaleString()} MW de Solar GD em campo.`);
+      addDessemLog(`Compensação de Visão Computacional (MEX IA): ${dessemAiCompensation ? 'ATIVADA (Acurácia nominal 100%)' : 'DESATIVADA (Solar GD Invisível!)'}`);
+
+      const runHourStep = () => {
+        if (hour < 24) {
+          setDessemSimulationHour(hour);
+          const solarFactor = hour >= 6 && hour <= 17 ? Math.sin((hour - 6) * Math.PI / 11) : 0;
+          const actualSolarGd = Math.round(dessemUnmappedGdPower * solarFactor);
+          const grossDemand = [55, 51, 48, 46, 46, 48, 53, 58, 65, 70, 73, 75, 74, 75, 77, 76, 75, 76, 82, 84, 82, 78, 70, 62][hour] * 1000;
+          
+          if (dessemAiCompensation) {
+            const plannedNetLoad = grossDemand - actualSolarGd;
+            addDessemLog(`Hora ${hour.toString().padStart(2, '0')}:00 - Demanda real de ${grossDemand.toLocaleString()} MW. IA mapeou ${actualSolarGd.toLocaleString()} MW de Solar GD. Carga líquida planejada: ${plannedNetLoad.toLocaleString()} MW.`);
+            if (hour >= 11 && hour <= 14) {
+              addDessemLog(`>> [OTIMIZAÇÃO] Reduzindo geração hidráulica para armazenar água e poupar térmicas.`);
+            } else if (hour >= 18 && hour <= 20) {
+              addDessemLog(`>> [SUCESSO] Rampa de fim de tarde suportada 100% por hidrelétricas descansadas. CMO estável.`);
+            }
+          } else {
+            addDessemLog(`Hora ${hour.toString().padStart(2, '0')}:00 - Demanda real de ${grossDemand.toLocaleString()} MW. Solar GD real de ${actualSolarGd.toLocaleString()} MW é invisível para o ONS!`);
+            if (actualSolarGd > 5000) {
+              addDessemLog(`>> [PERIGO] Sobrecarga fantasma na transmissão e sobregeração real detectada. Frequência ameaçada.`);
+            }
+            if (hour >= 18 && hour <= 20) {
+              addDessemLog(`>> [FALHA] Rampa violenta de ${(grossDemand - (grossDemand - actualSolarGd)).toLocaleString()} MW! Hidrelétricas esgotadas. Acionando TÉRMICAS DE EMERGÊNCIA! CMO dispara.`);
+            }
           }
+          hour++;
+          setTimeout(runHourStep, 100);
         } else {
-          addDessemLog(`Hora ${hour.toString().padStart(2, '0')}:00 - Demanda real de ${grossDemand.toLocaleString()} MW. Solar GD real de ${actualSolarGd.toLocaleString()} MW é invisível para o ONS!`);
-          if (actualSolarGd > 5000) {
-            addDessemLog(`>> [PERIGO] Sobrecarga fantasma na transmissão e sobregeração real detectada. Frequência ameaçada.`);
-          }
-          if (hour >= 18 && hour <= 20) {
-            addDessemLog(`>> [FALHA] Rampa violenta de ${(grossDemand - (grossDemand - actualSolarGd)).toLocaleString()} MW! Hidrelétricas esgotadas. Acionando TÉRMICAS DE EMERGÊNCIA! CMO dispara.`);
+          setDessemSimulationHour(null);
+          setDessemSimulating(false);
+          addDessemLog("✓ PROCESSO CONCLUÍDO - Despacho DESSEM finalizado para o horizonte de 24 horas.");
+          if (dessemAiCompensation) {
+            addDessemLog("🏆 RESULTADO: CMO médio reduzido em até 42%, zero desperdício térmico e rampa de carga estabilizada via visão computacional.");
+          } else {
+            addDessemLog("⚠ ALERTA DE SISTEMA: CMO disparado. Ativação de térmica inflexível custou R$ 14,8M extras. Risco de blackout local por rampa subestimada.");
           }
         }
-        hour++;
-        setTimeout(runHourStep, 150);
-      } else {
-        setDessemSimulationHour(null);
-        setDessemSimulating(false);
-        addDessemLog("✓ PROCESSO CONCLUÍDO - Despacho DESSEM finalizado para o horizonte de 24 horas.");
-        if (dessemAiCompensation) {
-          addDessemLog("🏆 RESULTADO: CMO médio reduzido em até 42%, zero desperdício térmico e rampa de carga estabilizada via visão computacional.");
+      };
+      setTimeout(runHourStep, 100);
+      return;
+    }
+
+    if (dessemPeriod === 'monthly') {
+      addDessemLog("📆 INICIANDO MODELAGEM DESSEM MENSAL (30 DIAS) ⚡");
+      addDessemLog(`Solar GD Ativo: ${dessemUnmappedGdPower.toLocaleString()} MW.`);
+      addDessemLog(`Previsão Climatológica com Visão Computacional: ${dessemAiCompensation ? 'HABILITADA' : 'DESABILITADA'}`);
+
+      const runDayStep = () => {
+        if (hour < 30) {
+          setDessemSimulationHour(hour);
+          const dayNum = hour + 1;
+          const isWeekend = dayNum % 7 === 0 || dayNum % 7 === 6;
+          const baseDemand = isWeekend ? 61000 : 75500;
+          const grossDemand = Math.round(baseDemand + Math.sin(dayNum * 0.55) * 1200);
+          
+          if (dessemAiCompensation) {
+            addDessemLog(`Dia ${dayNum.toString().padStart(2, '0')} - Planejamento integrado concluído. Hidráulica programada eficientemente. CMO controlado.`);
+          } else {
+            addDessemLog(`Dia ${dayNum.toString().padStart(2, '0')} - Instabilidade solar diária gerou desvios de previsão de até 12%. Térmicas inflexíveis acionadas preventivamente.`);
+          }
+          hour++;
+          setTimeout(runDayStep, 80);
         } else {
-          addDessemLog("⚠ ALERTA DE SISTEMA: CMO disparado. Ativação de térmica inflexível custou R$ 14,8M extras. Risco de blackout local por rampa subestimada.");
+          setDessemSimulationHour(null);
+          setDessemSimulating(false);
+          addDessemLog("✓ PROCESSO CONCLUÍDO - Simulação do despacho mensal de 30 dias finalizada.");
+          if (dessemAiCompensation) {
+            addDessemLog("🏆 RESULTADO: Economia líquida acumulada de R$ 112M em custos térmicos evitados no mês.");
+          } else {
+            addDessemLog("⚠ ALERTA DE SISTEMA: Penalidades por desvio de rampa solar somaram R$ 240M de custo extra repassado ao consumidor final.");
+          }
         }
-      }
-    };
-    setTimeout(runHourStep, 100);
+      };
+      setTimeout(runDayStep, 100);
+      return;
+    }
+
+    if (dessemPeriod === 'annual') {
+      addDessemLog("📊 INICIANDO MODELAGEM DESSEM ANUAL SAZONAL (12 MESES) ⚡");
+      addDessemLog(`Análise de Sazonalidade (Períodos Secos vs Períodos Úmidos Brasileiros)`);
+      
+      const runMonthStep = () => {
+        if (hour < 12) {
+          setDessemSimulationHour(hour);
+          const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+          const currentMonthName = months[hour];
+          
+          if (dessemAiCompensation) {
+            addDessemLog(`Mês [${currentMonthName}] - Modelo integrado de IA reduziu rampa do ano. Reservatórios UHE preservados com eficiência.`);
+          } else {
+            addDessemLog(`Mês [${currentMonthName}] - Perda severa de previsibilidade solar GD forçou maior queima de carvão e gás. CMO anual alto.`);
+          }
+          hour++;
+          setTimeout(runMonthStep, 120);
+        } else {
+          setDessemSimulationHour(null);
+          setDessemSimulating(false);
+          addDessemLog("✓ PROCESSO CONCLUÍDO - Modelo de despacho sazonal anual finalizado.");
+          if (dessemAiCompensation) {
+            addDessemLog("🏆 RESULTADO: Redução permanente de 18% na pegada de carbono do despacho do SIN pela otimização do acionamento termelétrico.");
+          } else {
+            addDessemLog("⚠ ALERTA: Reservatórios chegaram a níveis críticos (abaixo de 22% no Sudeste) devido ao uso excessivo de água diurna para compensação cega.");
+          }
+        }
+      };
+      setTimeout(runMonthStep, 100);
+      return;
+    }
   };
 
-  // Computes the hourly curves for the DESSEM official national dispatch simulation
-  const dessemHourlyData = useMemo(() => {
-    const grossDemandProfile = [55, 51, 48, 46, 46, 48, 53, 58, 65, 70, 73, 75, 74, 75, 77, 76, 75, 76, 82, 84, 82, 78, 70, 62];
+  // Computes the curves for the DESSEM official national dispatch simulation across different periods
+  const dessemChartData = useMemo(() => {
+    if (dessemPeriod === 'realtime') {
+      // 24 interval steps representing live minute-by-minute dispatch (last 2 hours in 5-minute ticks)
+      const baseLoad = 74000;
+      return Array.from({ length: 24 }).map((_, i) => {
+        const minAgo = (23 - i) * 5;
+        const label = minAgo === 0 ? 'Agora' : `-${minAgo}m`;
+        
+        // Slight noise/variation in load
+        const grossDemand = Math.round(baseLoad + Math.sin(i * 0.4) * 800 + (Math.sin(i * 0.05) * 400) + (Math.random() - 0.5) * 150);
+        
+        // Solar has small fluctuations due to weather
+        const solarFactor = 0.55 + Math.sin(i * 0.15) * 0.08;
+        const actualSolarGd = Math.round((dessemUnmappedGdPower * 0.48) * solarFactor + (Math.random() - 0.5) * 80);
+        const actualNetLoad = grossDemand - actualSolarGd;
+        
+        const plannedNetLoad = dessemAiCompensation ? actualNetLoad : grossDemand;
+        const forecastError = dessemAiCompensation ? 0.15 : (actualSolarGd / grossDemand) * 100;
+        
+        let thermal = dessemAiCompensation ? 2450 : 4200 + Math.round(Math.sin(i * 0.3) * 150);
+        let hydro = Math.max(0, actualNetLoad - 14000 - thermal);
+        let cmo = dessemAiCompensation ? Math.round(62 + Math.sin(i * 0.1) * 3) : Math.round(185 + Math.sin(i * 0.1) * 15);
+        
+        return {
+          hour: label,
+          grossDemand,
+          actualSolarGd,
+          actualNetLoad,
+          plannedNetLoad,
+          hydro,
+          thermal,
+          cmo,
+          forecastError
+        };
+      });
+    }
     
-    return grossDemandProfile.map((grossGW, hour) => {
-      const grossDemand = grossGW * 1000; // in MW
-      const solarFactor = hour >= 6 && hour <= 17 ? Math.sin((hour - 6) * Math.PI / 11) : 0;
-      const actualSolarGd = Math.round(dessemUnmappedGdPower * solarFactor);
-      const actualNetLoad = grossDemand - actualSolarGd;
+    if (dessemPeriod === 'daily') {
+      // Classic 24h curve
+      const grossDemandProfile = [55, 51, 48, 46, 46, 48, 53, 58, 65, 70, 73, 75, 74, 75, 77, 76, 75, 76, 82, 84, 82, 78, 70, 62];
       
-      const plannedNetLoad = dessemAiCompensation ? actualNetLoad : grossDemand;
-      const forecastError = dessemAiCompensation ? 0.2 : (actualSolarGd / grossDemand) * 100;
-      
-      // Calculate dispatches based on whether ONS "sees" the GD
-      let hydro = 0;
-      let thermal = 0;
-      let cmo = 0;
-      
-      if (dessemAiCompensation) {
-        // Optimized dispatch: REST hydro during day, RAMP in the evening. Minimal thermals.
-        const baseRenewables = 12000 + (hour >= 8 && hour <= 16 ? 4000 : 0); // Wind and Central Solar
-        const netToCover = Math.max(0, actualNetLoad - baseRenewables);
+      return grossDemandProfile.map((grossGW, hour) => {
+        const grossDemand = grossGW * 1000; // in MW
+        const solarFactor = hour >= 6 && hour <= 17 ? Math.sin((hour - 6) * Math.PI / 11) : 0;
+        const actualSolarGd = Math.round(dessemUnmappedGdPower * solarFactor);
+        const actualNetLoad = grossDemand - actualSolarGd;
         
-        // Thermal is kept to a absolute minimum constant baseline (e.g., nuclear/biomass/inflexible)
-        thermal = 2500; 
-        hydro = Math.max(0, netToCover - thermal);
+        const plannedNetLoad = dessemAiCompensation ? actualNetLoad : grossDemand;
+        const forecastError = dessemAiCompensation ? 0.2 : (actualSolarGd / grossDemand) * 100;
         
-        // Stable CMO (R$/MWh)
-        cmo = Math.round(65 + (hour >= 18 && hour <= 20 ? 45 : hour >= 11 && hour <= 14 ? -15 : 10));
-      } else {
-        // Blind dispatch: Hydro is kept high during the day because ONS expected gross demand.
-        // In the evening, ONS faces a massive demand spike and runs out of fast-start hydro, forcing massive thermal dispatch.
-        const baseRenewables = 12000 + (hour >= 8 && hour <= 16 ? 4000 : 0);
-        const netToCoverPlanned = Math.max(0, plannedNetLoad - baseRenewables);
+        // Calculate dispatches based on whether ONS "sees" the GD
+        let hydro = 0;
+        let thermal = 0;
+        let cmo = 0;
         
-        // ONS plans high thermal because it doesn't see solar GD reducing net demand
-        const plannedThermal = Math.max(3000, netToCoverPlanned * 0.25);
-        
-        // In real-time, the actual load is lower, so they have to dump generation or run thermals inflexibly
-        thermal = plannedThermal;
-        
-        // Evening peak causes panic thermal dispatch
-        if (hour >= 18 && hour <= 20) {
-          thermal += 9500; // expensive thermal spike
+        if (dessemAiCompensation) {
+          const baseRenewables = 12000 + (hour >= 8 && hour <= 16 ? 4000 : 0);
+          const netToCover = Math.max(0, actualNetLoad - baseRenewables);
+          thermal = 2500; 
+          hydro = Math.max(0, netToCover - thermal);
+          cmo = Math.round(65 + (hour >= 18 && hour <= 20 ? 45 : hour >= 11 && hour <= 14 ? -15 : 10));
+        } else {
+          const baseRenewables = 12000 + (hour >= 8 && hour <= 16 ? 4000 : 0);
+          const netToCoverPlanned = Math.max(0, plannedNetLoad - baseRenewables);
+          const plannedThermal = Math.max(3000, netToCoverPlanned * 0.25);
+          thermal = plannedThermal;
+          if (hour >= 18 && hour <= 20) {
+            thermal += 9500;
+          }
+          hydro = Math.max(0, actualNetLoad - baseRenewables - thermal);
+          cmo = Math.round(140 + (hour >= 18 && hour <= 20 ? 680 : hour >= 11 && hour <= 14 ? 120 : 50));
         }
         
-        hydro = Math.max(0, actualNetLoad - baseRenewables - thermal);
+        return {
+          hour: `${hour.toString().padStart(2, '0')}h`,
+          grossDemand,
+          actualSolarGd,
+          actualNetLoad,
+          plannedNetLoad,
+          hydro,
+          thermal,
+          cmo,
+          forecastError
+        };
+      });
+    }
+    
+    if (dessemPeriod === 'monthly') {
+      // 30 days
+      return Array.from({ length: 30 }).map((_, i) => {
+        const dayNum = i + 1;
+        const isWeekend = dayNum % 7 === 0 || dayNum % 7 === 6;
         
-        // Spike CMO (R$/MWh)
-        cmo = Math.round(140 + (hour >= 18 && hour <= 20 ? 680 : hour >= 11 && hour <= 14 ? 120 : 50));
-      }
+        // Demand profile (lower on weekends)
+        const baseDemand = isWeekend ? 61000 : 75500;
+        const grossDemand = Math.round(baseDemand + Math.sin(dayNum * 0.55) * 1200 + (Math.random() - 0.5) * 300);
+        
+        // Weather factor for Solar GD (some days are cloudy/rainy)
+        const weatherFactor = 0.45 + Math.sin(dayNum * 0.75) * 0.35;
+        const actualSolarGd = Math.round(dessemUnmappedGdPower * 0.45 * Math.max(0.12, Math.min(1, weatherFactor)));
+        const actualNetLoad = grossDemand - actualSolarGd;
+        
+        const plannedNetLoad = dessemAiCompensation ? actualNetLoad : grossDemand;
+        const forecastError = dessemAiCompensation ? 0.3 : (actualSolarGd / grossDemand) * 100;
+        
+        let thermal = 0;
+        let hydro = 0;
+        let cmo = 0;
+        
+        if (dessemAiCompensation) {
+          thermal = 2600 + Math.round(Math.sin(dayNum) * 200);
+          hydro = Math.max(0, actualNetLoad - 15000 - thermal);
+          cmo = Math.round(75 + Math.sin(dayNum * 0.4) * 8);
+        } else {
+          // Extra thermal due to unmapped solar swings causing daily forecast adjustments
+          thermal = 4200 + (weatherFactor < 0.5 ? 4300 : 1200) + Math.round(Math.random() * 500);
+          hydro = Math.max(0, actualNetLoad - 15000 - thermal);
+          cmo = Math.round(175 + (weatherFactor < 0.5 ? 240 : 70) + Math.sin(dayNum * 0.4) * 30);
+        }
+        
+        return {
+          hour: `Dia ${dayNum.toString().padStart(2, '0')}`,
+          grossDemand,
+          actualSolarGd,
+          actualNetLoad,
+          plannedNetLoad,
+          hydro,
+          thermal,
+          cmo,
+          forecastError
+        };
+      });
+    }
+    
+    if (dessemPeriod === 'annual') {
+      // 12 Months
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const demandSeasonal = [78, 80, 75, 70, 65, 62, 60, 63, 68, 72, 75, 77]; // GW
+      const solarSeasonal = [1.0, 0.95, 0.85, 0.7, 0.55, 0.45, 0.5, 0.65, 0.8, 0.9, 0.95, 1.0]; // Seasonality factor (summer vs winter)
       
-      return {
-        hour: `${hour.toString().padStart(2, '0')}h`,
-        grossDemand,
-        actualSolarGd,
-        actualNetLoad,
-        plannedNetLoad,
-        hydro,
-        thermal,
-        cmo,
-        forecastError
-      };
+      // Brazilian seasonality:
+      // Wet period (Jan-Apr): high water inflow, UHE dispatch high, CMO very low (often near floor)
+      // Dry period (May-Nov): low water inflow, UHE limited, high UTE dispatch, CMO rises
+      const wetDryFactor = [0.2, 0.2, 0.3, 0.4, 0.7, 0.85, 0.9, 0.95, 0.8, 0.7, 0.4, 0.2]; // Higher means dry, need thermal
+      
+      return months.map((month, i) => {
+        const grossDemand = demandSeasonal[i] * 1000;
+        const actualSolarGd = Math.round(dessemUnmappedGdPower * 0.5 * solarSeasonal[i]);
+        const actualNetLoad = grossDemand - actualSolarGd;
+        
+        const plannedNetLoad = dessemAiCompensation ? actualNetLoad : grossDemand;
+        const forecastError = dessemAiCompensation ? 0.25 : (actualSolarGd / grossDemand) * 100;
+        
+        let thermal = 0;
+        let hydro = 0;
+        let cmo = 0;
+        
+        if (dessemAiCompensation) {
+          // Optimized seasonal allocation
+          thermal = Math.round(2000 + wetDryFactor[i] * 5000); // minimal extra thermal, rely on stored hydro
+          hydro = Math.max(0, actualNetLoad - 13000 - thermal);
+          cmo = Math.round(50 + wetDryFactor[i] * 120);
+        } else {
+          // Unoptimized: dry season is catastrophic, but even wet season has daily thermal penalties due to solar blind spots
+          thermal = Math.round(4000 + wetDryFactor[i] * 11000 + (1 - solarSeasonal[i]) * 1500);
+          hydro = Math.max(0, actualNetLoad - 13000 - thermal);
+          cmo = Math.round(110 + wetDryFactor[i] * 420 + (1 - solarSeasonal[i]) * 80);
+        }
+        
+        return {
+          hour: month,
+          grossDemand,
+          actualSolarGd,
+          actualNetLoad,
+          plannedNetLoad,
+          hydro,
+          thermal,
+          cmo,
+          forecastError
+        };
+      });
+    }
+    
+    return [];
+  }, [dessemPeriod, dessemAiCompensation, dessemUnmappedGdPower]);
+
+  // Computes the average and peak values for demand and supply under the selected DESSEM period
+  const dessemAverages = useMemo(() => {
+    const len = dessemChartData.length || 1;
+    let sumDemand = 0;
+    let sumHydro = 0;
+    let sumThermal = 0;
+    let sumSolarGd = 0;
+    let sumBaseRenewables = 0;
+
+    dessemChartData.forEach((item, index) => {
+      sumDemand += item.grossDemand;
+      sumHydro += item.hydro;
+      sumThermal += item.thermal;
+      sumSolarGd += item.actualSolarGd;
+      
+      let baseRenew = 0;
+      if (dessemPeriod === 'realtime') {
+        baseRenew = 14000;
+      } else if (dessemPeriod === 'daily') {
+        baseRenew = 12000 + (index >= 8 && index <= 16 ? 4000 : 0);
+      } else if (dessemPeriod === 'monthly') {
+        baseRenew = 15000;
+      } else if (dessemPeriod === 'annual') {
+        baseRenew = 13000;
+      }
+      sumBaseRenewables += baseRenew;
     });
-  }, [dessemAiCompensation, dessemUnmappedGdPower]);
+
+    const avgDemand = Math.round(sumDemand / len);
+    const avgHydro = Math.round(sumHydro / len);
+    const avgThermal = Math.round(sumThermal / len);
+    const avgSolarGd = Math.round(sumSolarGd / len);
+    const avgBaseRenewables = Math.round(sumBaseRenewables / len);
+    const avgTotalSupply = avgHydro + avgThermal + avgSolarGd + avgBaseRenewables;
+
+    return {
+      avgDemand,
+      avgHydro,
+      avgThermal,
+      avgSolarGd,
+      avgBaseRenewables,
+      avgTotalSupply,
+      peakDemand: Math.max(...dessemChartData.map(d => d.grossDemand)),
+      peakSupply: Math.max(...dessemChartData.map(d => d.hydro + d.thermal + d.actualSolarGd + (dessemPeriod === 'realtime' ? 14000 : dessemPeriod === 'monthly' ? 15000 : dessemPeriod === 'annual' ? 13000 : 14000)))
+    };
+  }, [dessemChartData, dessemPeriod]);
   
   // Real time simulation updates for Brazilian SIN metrics
   useEffect(() => {
@@ -2387,6 +2660,137 @@ export const OnsAneelGrid: React.FC<{
             </p>
           </div>
 
+          {/* Period selector */}
+          <div className="bg-gray-950 p-4 rounded-xl border border-gray-850 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
+            <div className="space-y-1">
+              <span className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-wider block">Escala Temporal do Despacho (Oferta & Demanda)</span>
+              <p className="text-xs text-gray-400">Analise o balanço energético nacional sob diferentes horizontes cronológicos</p>
+            </div>
+            <div className="flex flex-wrap bg-gray-900 border border-gray-800 p-1 rounded-lg gap-1">
+              {(['realtime', 'daily', 'monthly', 'annual'] as const).map((p) => {
+                const labelMap = {
+                  realtime: '⏱ Tempo Real',
+                  daily: '📅 Diário (24h)',
+                  monthly: '📆 Mensal (30d)',
+                  annual: '📊 Anual (12m)'
+                };
+                return (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      setDessemPeriod(p);
+                      addDessemLog(`Escala cronológica alterada para: ${p.toUpperCase()}`);
+                    }}
+                    className={`px-3 py-1.5 text-[10px] font-black uppercase rounded transition-all ${
+                      dessemPeriod === p 
+                        ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/15' 
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {labelMap[p]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Integrated Demand & Supply Balance Panel */}
+          <div className="bg-gray-900 border border-gray-750 p-5 rounded-xl space-y-4 font-mono text-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-800 pb-3 gap-2">
+              <div className="space-y-1">
+                <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider block">Balanço Físico Integrado de Rede</span>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <span>📊</span> Resumo de Equilíbrio: Demanda vs Geração (Oferta)
+                </h3>
+              </div>
+              <div className="text-[10px] text-gray-400">
+                Horizonte de Análise: <span className="text-cyan-400 font-bold uppercase">{dessemPeriod === 'realtime' ? 'Tempo Real (Últimas 2h)' : dessemPeriod === 'daily' ? 'Diário (24 Horas)' : dessemPeriod === 'monthly' ? 'Mensal (30 Dias)' : 'Anual (12 Meses)'}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Demanda Card */}
+              <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">Demanda de Consumo</span>
+                  <p className="text-xs text-gray-400">Carga Bruta média requerida pelos consumidores</p>
+                </div>
+                <div>
+                  <div className="text-xl font-black text-white">
+                    {(dessemAverages.avgDemand / 1000).toFixed(1)} GW <span className="text-xs text-gray-500">Média</span>
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1">
+                    Pico de Demanda: {(dessemAverages.peakDemand / 1000).toFixed(1)} GW
+                  </div>
+                </div>
+              </div>
+
+              {/* Oferta Renovavel Card */}
+              <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Geração Hidro & Eólica</span>
+                  <p className="text-xs text-gray-400">Oferta despachável principal do ONS</p>
+                </div>
+                <div>
+                  <div className="text-xl font-black text-emerald-400">
+                    {((dessemAverages.avgHydro + dessemAverages.avgBaseRenewables) / 1000).toFixed(1)} GW
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1 font-mono">
+                    UHE: {(dessemAverages.avgHydro / 1000).toFixed(1)} GW | Outros: {(dessemAverages.avgBaseRenewables / 1000).toFixed(1)} GW
+                  </div>
+                </div>
+              </div>
+
+              {/* Oferta Solar GD Card */}
+              <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Oferta Solar GD</span>
+                  <p className="text-xs text-gray-400">Geração injetada diretamente nos telhados</p>
+                </div>
+                <div>
+                  <div className="text-xl font-black text-amber-400">
+                    {(dessemAverages.avgSolarGd / 1000).toFixed(1)} GW
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1">
+                    Rastreamento de IA: {dessemAiCompensation ? '✓ 100% Mapeado' : '⚠ Sem Telemetria'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Oferta Termica Card */}
+              <div className="bg-gray-950 p-4 rounded-lg border border-gray-850 space-y-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] text-orange-400 font-bold uppercase tracking-wider block">Oferta Térmica (UTE)</span>
+                  <p className="text-xs text-gray-400">Geração termoelétrica de base / segurança</p>
+                </div>
+                <div>
+                  <div className={`text-xl font-black ${dessemAiCompensation ? 'text-teal-400' : 'text-rose-400 font-extrabold'}`}>
+                    {(dessemAverages.avgThermal / 1000).toFixed(1)} GW
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1">
+                    Custo Adicional: {dessemAiCompensation ? 'R$ 0M (Otimizado)' : 'R$ ' + (dessemPeriod === 'annual' ? '1.48B (Anual)' : dessemPeriod === 'monthly' ? '240M (Mensal)' : '14.8M (Diário)')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Equilibrium status bar */}
+            <div className="bg-gray-950 px-4 py-2.5 rounded-lg border border-gray-850 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-2 border-l-2 border-l-emerald-500">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>Frequência Sincronizada do Sistema: <strong className="text-emerald-400">60.00 Hz</strong> (Variação Aceitável: ±0.2 Hz)</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span>Equilíbrio Oferta/Demanda: <strong className="text-cyan-400">100.00% Estável</strong></span>
+                <span className="hidden sm:inline text-gray-600">|</span>
+                <span>Desvio Físico de Rede: <strong className="text-emerald-400">0.00 MW</strong></span>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-xs">
             {/* Left Controls Card */}
             <div className="lg:col-span-1 bg-gray-900 border border-gray-700 rounded-xl p-5 space-y-5 flex flex-col justify-between">
@@ -2454,11 +2858,11 @@ export const OnsAneelGrid: React.FC<{
                     {dessemSimulating ? (
                       <>
                         <span className="w-4 h-4 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></span>
-                        Simulando hora {dessemSimulationHour}h...
+                        Simulando despacho...
                       </>
                     ) : (
                       <>
-                        <span>⚡</span> Executar Despacho Horário DESSEM
+                        <span>⚡</span> Simular Novo Cenário Energético
                       </>
                     )}
                   </button>
@@ -2477,7 +2881,7 @@ export const OnsAneelGrid: React.FC<{
                 
                 <div className="font-mono text-[9px] text-cyan-300 space-y-1 overflow-y-auto max-h-48 flex-grow h-40 scrollbar-thin">
                   {dessemLogs.length === 0 ? (
-                    <p className="text-gray-500 italic">Nenhum despacho executado nesta rodada. Clique em "Executar Despacho Horário DESSEM" para iniciar a varredura do ONS.</p>
+                    <p className="text-gray-500 italic">Nenhum despacho executado nesta rodada. Selecione a escala acima e simule novos cenários para iniciar a varredura do ONS.</p>
                   ) : (
                     dessemLogs.map((log, index) => (
                       <p key={index} className="leading-tight">{log}</p>
@@ -2494,33 +2898,33 @@ export const OnsAneelGrid: React.FC<{
                 <div className="bg-gray-900 border border-gray-800 p-3 rounded-xl space-y-1">
                   <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Erro de Previsão</span>
                   <p className={`text-xl font-black ${dessemAiCompensation ? 'text-emerald-400' : 'text-rose-500'}`}>
-                    {dessemAiCompensation ? '0.2%' : `${(dessemHourlyData.reduce((acc, h) => acc + h.forecastError, 0) / 24).toFixed(1)}%`}
+                    {dessemAiCompensation ? '0.2%' : `${(dessemChartData.reduce((acc, h) => acc + h.forecastError, 0) / dessemChartData.length).toFixed(1)}%`}
                   </p>
                   <p className="text-[9px] text-gray-500">Mapeamento ONS</p>
                 </div>
 
                 <div className="bg-gray-900 border border-gray-800 p-3 rounded-xl space-y-1">
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">CMO Médio Diário</span>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">CMO Médio</span>
                   <p className={`text-xl font-black ${dessemAiCompensation ? 'text-emerald-400' : 'text-amber-500 animate-pulse'}`}>
-                    R$ {Math.round(dessemHourlyData.reduce((acc, h) => acc + h.cmo, 0) / 24)}/MWh
+                    R$ {Math.round(dessemChartData.reduce((acc, h) => acc + h.cmo, 0) / dessemChartData.length)}/MWh
                   </p>
                   <p className="text-[9px] text-gray-500">Custo Marginal Operacional</p>
                 </div>
 
                 <div className="bg-gray-900 border border-gray-800 p-3 rounded-xl space-y-1">
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rampa de Fim de Tarde</span>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Perfil da Rampa</span>
                   <p className={`text-xl font-black ${dessemAiCompensation ? 'text-teal-400' : 'text-red-500'}`}>
-                    {dessemAiCompensation ? 'Suave (Hidro)' : 'Crítica (Térmica)'}
+                    {dessemAiCompensation ? 'Suave (Otimizado)' : 'Crítico (Sobrecarregado)'}
                   </p>
-                  <p className="text-[9px] text-gray-500">Rampas de 17h às 19h</p>
+                  <p className="text-[9px] text-gray-500">Pico de Oferta vs Demanda</p>
                 </div>
 
                 <div className="bg-gray-900 border border-gray-800 p-3 rounded-xl space-y-1">
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Custo Extra Térmico</span>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Custo Térmico Extra</span>
                   <p className={`text-xl font-black ${dessemAiCompensation ? 'text-emerald-400' : 'text-rose-400 font-extrabold'}`}>
-                    {dessemAiCompensation ? 'R$ 0,0M' : `R$ ${(dessemHourlyData.reduce((acc, h) => acc + h.thermal, 0) * 420 / 1000000).toFixed(1)}M`}
+                    {dessemAiCompensation ? 'R$ 0,0M' : `R$ ${(dessemChartData.reduce((acc, h) => acc + h.thermal, 0) * 420 / (dessemPeriod === 'annual' ? 100000000 : dessemPeriod === 'monthly' ? 15000000 : 1000000)).toFixed(1)}M`}
                   </p>
-                  <p className="text-[9px] text-gray-500">Desperdício Estimado</p>
+                  <p className="text-[9px] text-gray-500">Despesa Extra Estimada</p>
                 </div>
               </div>
 
@@ -2528,17 +2932,19 @@ export const OnsAneelGrid: React.FC<{
               <div className="bg-gray-900 border border-gray-700 rounded-xl p-5 space-y-4">
                 <div>
                   <h3 className="text-sm font-extrabold text-white uppercase tracking-wider flex items-center justify-between">
-                    <span>📊 Curva do Pato: Carga Bruta vs Carga Líquida Planejada</span>
-                    <span className="text-[10px] bg-gray-950 text-cyan-400 px-2 py-0.5 rounded border border-gray-850">Resolução: Horária</span>
+                    <span>📊 Oferta & Demanda: Carga Bruta vs Carga Líquida Planejada</span>
+                    <span className="text-[10px] bg-gray-950 text-cyan-400 px-2 py-0.5 rounded border border-gray-850">
+                      Modo: {dessemPeriod === 'realtime' ? 'Tempo Real' : dessemPeriod === 'daily' ? 'Diário (24h)' : dessemPeriod === 'monthly' ? 'Mensal (30d)' : 'Anual (12m)'}
+                    </span>
                   </h3>
                   <p className="text-gray-400 text-[11px] mt-1">
-                    Visualização do impacto imediato da geração fotovoltaica distribuída não mapeada na demanda global do SIN (fossa diurna).
+                    Visualização do impacto imediato da geração fotovoltaica distribuída não mapeada na demanda global do SIN. {dessemPeriod === 'annual' ? 'Note a forte sazonalidade hidrológica brasileira (Período Seco vs Úmido).' : ''}
                   </p>
                 </div>
 
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={dessemHourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={dessemChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorGross" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15}/>
@@ -2558,9 +2964,9 @@ export const OnsAneelGrid: React.FC<{
                       <YAxis stroke="#94a3b8" tick={{ fontSize: 9, fontFamily: 'monospace' }} unit=" GW" tickFormatter={(v) => (v / 1000).toFixed(0)} />
                       <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc', fontFamily: 'monospace', fontSize: '11px' }} />
                       <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace', paddingTop: '10px' }} />
-                      <Area type="monotone" dataKey="grossDemand" name="Carga Bruta (Demanda Consumo)" stroke="#ef4444" fillOpacity={1} fill="url(#colorGross)" strokeWidth={2.5} />
-                      <Area type="monotone" dataKey="plannedNetLoad" name="Carga Líquida Planejada (DESSEM)" stroke="#06b6d4" fillOpacity={1} fill="url(#colorNet)" strokeWidth={2.5} />
-                      <Area type="monotone" dataKey="actualSolarGd" name="Solar GD Invisível (Ponderada)" stroke="#f59e0b" fillOpacity={1} fill="url(#colorSolar)" strokeWidth={1.5} strokeDasharray="3 3" />
+                      <Area type="monotone" dataKey="grossDemand" name="Demanda / Carga Bruta Consumida" stroke="#ef4444" fillOpacity={1} fill="url(#colorGross)" strokeWidth={2.5} />
+                      <Area type="monotone" dataKey="plannedNetLoad" name="Carga Líquida Planejada pelo ONS" stroke="#06b6d4" fillOpacity={1} fill="url(#colorNet)" strokeWidth={2.5} />
+                      <Area type="monotone" dataKey="actualSolarGd" name="Oferta Solar GD Invisível" stroke="#f59e0b" fillOpacity={1} fill="url(#colorSolar)" strokeWidth={1.5} strokeDasharray="3 3" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -2570,17 +2976,17 @@ export const OnsAneelGrid: React.FC<{
               <div className="bg-gray-900 border border-gray-700 rounded-xl p-5 space-y-4">
                 <div>
                   <h3 className="text-sm font-extrabold text-white uppercase tracking-wider flex items-center justify-between">
-                    <span>⚡ Alocação do Despacho Energético ONS (DESSEM)</span>
+                    <span>⚡ Despacho & Oferta de Energia ONS (DESSEM)</span>
                     <span className="text-[10px] bg-gray-950 text-emerald-400 px-2 py-0.5 rounded border border-gray-850">Composição</span>
                   </h3>
                   <p className="text-gray-400 text-[11px] mt-1">
-                    Como a compensação via satélite permite modular a hidráulica e extinguir a rampa de emergência com termelétricas caras.
+                    Como o ONS mobiliza a oferta hidráulica (UHE) e térmica (UTE) para cobrir a carga líquida do sistema.
                   </p>
                 </div>
 
                 <div className="h-72 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={dessemHourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={dessemChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorHydro" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
@@ -2596,8 +3002,8 @@ export const OnsAneelGrid: React.FC<{
                       <YAxis stroke="#94a3b8" tick={{ fontSize: 9, fontFamily: 'monospace' }} unit=" GW" tickFormatter={(v) => (v / 1000).toFixed(0)} />
                       <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc', fontFamily: 'monospace', fontSize: '11px' }} />
                       <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace', paddingTop: '10px' }} />
-                      <Area type="monotone" dataKey="hydro" name="Despacho Hidráulico (UHE)" stroke="#10b981" fillOpacity={1} fill="url(#colorHydro)" strokeWidth={2} stackId="1" />
-                      <Area type="monotone" dataKey="thermal" name="Despacho Térmico (UTE)" stroke="#f97316" fillOpacity={1} fill="url(#colorThermal)" strokeWidth={2} stackId="1" />
+                      <Area type="monotone" dataKey="hydro" name="Oferta Hidráulica (UHE)" stroke="#10b981" fillOpacity={1} fill="url(#colorHydro)" strokeWidth={2} stackId="1" />
+                      <Area type="monotone" dataKey="thermal" name="Oferta Térmica (UTE)" stroke="#f97316" fillOpacity={1} fill="url(#colorThermal)" strokeWidth={2} stackId="1" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -2608,20 +3014,20 @@ export const OnsAneelGrid: React.FC<{
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">
-                      📈 Curva do CMO (Custo Marginal de Operação Horário)
+                      📈 Curva do CMO (Custo Marginal de Operação)
                     </h3>
                     <p className="text-gray-400 text-[11px] mt-1">
                       Sensibilidade do preço por MWh em relação à previsibilidade da microgeração fotovoltaica distribuída.
                     </p>
                   </div>
                   <span className="text-[10px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded font-black">
-                    Máximo: R$ {Math.max(...dessemHourlyData.map(h => h.cmo))}/MWh
+                    Máximo: R$ {Math.max(...dessemChartData.map(h => h.cmo))}/MWh
                   </span>
                 </div>
 
                 <div className="h-52 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dessemHourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <LineChart data={dessemChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                       <XAxis dataKey="hour" stroke="#94a3b8" tick={{ fontSize: 9, fontFamily: 'monospace' }} />
                       <YAxis stroke="#94a3b8" tick={{ fontSize: 9, fontFamily: 'monospace' }} unit=" R$" />
