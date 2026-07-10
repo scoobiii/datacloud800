@@ -5,6 +5,7 @@ import PowerPlant from './pages/PowerPlant';
 import Utilities from './pages/Utilities';
 import DataCenter from './pages/DataCenter';
 import Infrastructure from './pages/Infrastructure';
+import SolarInfrastructure from './pages/SolarInfrastructure';
 import Financials from './pages/Financials';
 import Configuration from './pages/Configuration';
 import MexEcoBr from './pages/MexEcoBr';
@@ -372,6 +373,8 @@ const App: React.FC = () => {
         return <DataCenter onActiveRackUpdate={setActiveRackCount} t={t} />;
       case 'Infrastructure':
         return <Infrastructure />;
+      case 'Solar Infrastructure':
+        return <SolarInfrastructure />;
       case 'MAUAX consortium':
         return <MexEcoBr />;
       case 'Pitch MEX':

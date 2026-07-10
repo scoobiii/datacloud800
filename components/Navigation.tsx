@@ -10,6 +10,7 @@ export type Page =
     'Financials' | 
     'Configuration' | 
     'Infrastructure' | 
+    'Solar Infrastructure' | 
     'MAUAX consortium' | 
     'inventario UTE' | 
     'Chiller' | 
@@ -52,6 +53,7 @@ const navItems: NavItem[] = [
     { labelKey: 'nav.financials', page: 'Financials' },
     { labelKey: 'nav.configuration', page: 'Configuration' },
     { labelKey: 'nav.infrastructure', page: 'Infrastructure' },
+    { labelKey: 'nav.solarInfrastructure', page: 'Solar Infrastructure' },
     { labelKey: 'nav.consortium', page: 'MAUAX consortium' },
     { labelKey: 'nav.inventory', page: 'inventario UTE' },
     { labelKey: 'nav.onsAneelGrid', page: 'ONS & ANEEL Grid' },

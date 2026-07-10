@@ -1230,6 +1230,84 @@ export const OnsAneelGrid: React.FC<{
   const [formError, setFormError] = useState('');
 
   // ==========================================
+  // STATE MANAGEMENT FOR OPENINFRA MAP API & TRACKER
+  // ==========================================
+  const [isContinuousUpdating, setIsContinuousUpdating] = useState(false);
+  const [openInfraConsoleLogs, setOpenInfraConsoleLogs] = useState<string[]>([
+    `[${new Date().toLocaleTimeString()}] [OPENINFRA API] Conectado ao OpenInfra Map API v2.4.`,
+    `[${new Date().toLocaleTimeString()}] [OPENINFRA API] Mapeamento georeferenciado inicializado.`
+  ]);
+  const [selectedTrackedStreet, setSelectedTrackedStreet] = useState<string>('Av. Coronel Silva Telles');
+  const [selectedTrackedBlock, setSelectedTrackedBlock] = useState<string>('Quadra Residencial A1');
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiResultJson, setApiResultJson] = useState<string>('');
+
+  // Unique lists for the tracker dropdown selectors
+  const uniqueStreets = useMemo(() => {
+    const streets = new Set<string>();
+    solarMappingDb.forEach(item => {
+      if (item.street) streets.add(item.street);
+    });
+    return Array.from(streets);
+  }, [solarMappingDb]);
+
+  const uniqueBlocksForStreet = useMemo(() => {
+    const streetVal = selectedTrackedStreet || 'Av. Coronel Silva Telles';
+    const blocks = new Set<string>();
+    solarMappingDb.forEach(item => {
+      if (item.street === streetVal && item.block) {
+        blocks.add(item.block);
+      }
+    });
+    return Array.from(blocks);
+  }, [solarMappingDb, selectedTrackedStreet]);
+
+  // Handle continuous real-time simulated telemetry updates
+  useEffect(() => {
+    if (!isContinuousUpdating) return;
+
+    const interval = setInterval(() => {
+      setSolarMappingDb(prevDb => {
+        if (prevDb.length === 0) return prevDb;
+        const idx = Math.floor(Math.random() * prevDb.length);
+        const updated = [...prevDb];
+        const target = { ...updated[idx] };
+        
+        // Slightly fluctuate parameters to represent continuous changes
+        const deltaIrr = (Math.random() - 0.5) * 0.2;
+        target.averageIrradiance = Math.min(7.0, Math.max(3.5, Number((target.averageIrradiance + deltaIrr).toFixed(2))));
+        
+        if (Math.random() > 0.6) {
+          target.solarArea = Math.round(target.solarArea * (1 + (Math.random() * 0.01)));
+          if (target.solarRoofs < target.roofsDetected && Math.random() > 0.8) {
+            target.solarRoofs += 1;
+          }
+        }
+        
+        target.lastScan = new Date().toISOString();
+        updated[idx] = target;
+
+        // Broadcast API update event
+        const logMsg = `[${new Date().toLocaleTimeString()}] [OPENINFRA API] TELEMETRY RECONCILE: ID ${target.id} (${target.street} / ${target.block}) | Irradiance: ${target.averageIrradiance} kWh/m²/dia | Solar Area: ${target.solarArea} m²`;
+        setOpenInfraConsoleLogs(prev => [logMsg, ...prev].slice(0, 50));
+
+        return updated;
+      });
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [isContinuousUpdating]);
+
+  // Pre-fill blocks when street changes
+  useEffect(() => {
+    if (uniqueBlocksForStreet.length > 0) {
+      if (!uniqueBlocksForStreet.includes(selectedTrackedBlock)) {
+        setSelectedTrackedBlock(uniqueBlocksForStreet[0]);
+      }
+    }
+  }, [selectedTrackedStreet, uniqueBlocksForStreet, selectedTrackedBlock]);
+
+  // ==========================================
   // STATE MANAGEMENT FOR SOLAR MICROGRID 800VDC TIER V
   // ==========================================
   const [selectedStakeholder, setSelectedStakeholder] = useState<string>('MEX Data Cloud Consortium');
@@ -1609,6 +1687,49 @@ export const OnsAneelGrid: React.FC<{
         currentStep++;
       }
     }, 350);
+  };
+
+  const handleSimulateApiCall = () => {
+    setApiLoading(true);
+    const streetVal = selectedTrackedStreet;
+    const blockVal = selectedTrackedBlock;
+    
+    // Find matching assets
+    const matches = solarMappingDb.filter(
+      item => item.street === streetVal && item.block === blockVal
+    );
+
+    const requestTime = new Date().toLocaleTimeString();
+    const apiLog = `[${requestTime}] [GET] /api/v1/openinfra/tracker?street=${encodeURIComponent(streetVal)}&block=${encodeURIComponent(blockVal)} - Status: 200 OK`;
+    setOpenInfraConsoleLogs(prev => [apiLog, ...prev]);
+
+    setTimeout(() => {
+      setApiLoading(false);
+      setApiResultJson(JSON.stringify({
+        status: "success",
+        timestamp: new Date().toISOString(),
+        api_source: "OpenInfra Map Hub API v2.4",
+        query: { street: streetVal, block: blockVal },
+        matched_records_count: matches.length,
+        assets: matches.map(m => ({
+          asset_id: m.id,
+          street: m.street,
+          block: m.block,
+          bairro: m.neighborhood,
+          municipio: m.municipality,
+          uf: m.state,
+          total_roofs: m.roofsDetected,
+          solar_roofs: m.solarRoofs,
+          roof_occupancy_percent: Number(((m.solarRoofs / m.roofsDetected) * 100).toFixed(1)),
+          panel_area_m2: m.solarArea,
+          irradiance_kwh_m2_day: m.averageIrradiance,
+          panel_efficiency_pct: m.panelEfficiency,
+          system_pr_pct: m.performanceRatio,
+          computed_generation_mwh_year: Number(((m.solarArea * m.averageIrradiance * (m.panelEfficiency / 100) * (m.performanceRatio / 100) * 365) / 1000).toFixed(2)),
+          last_satellite_scan: m.lastScan
+        }))
+      }, null, 2));
+    }, 600);
   };
 
   // Sizing & Coloring metrics
@@ -4006,6 +4127,292 @@ export const OnsAneelGrid: React.FC<{
                     </div>
                   </div>
                 </div>
+              </div>
+
+            </div>
+
+            {/* NEW MODULE: OPENINFRA MAP API & REAL-TIME ASSET TRACKER */}
+            <div className="mt-8 space-y-6 animate-fadeIn font-mono">
+              
+              {/* Header Banner */}
+              <div className="bg-gradient-to-r from-cyan-950/40 via-gray-900 to-gray-950 p-5 rounded-xl border border-gray-800 shadow-xl space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-cyan-950/60 rounded-lg border border-cyan-800/40">
+                      <span className="text-lg font-sans">📡</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-cyan-400 font-extrabold uppercase tracking-widest block">Geospatial Open Source Mapping</span>
+                      <h3 className="text-base font-black text-white uppercase tracking-tight">OpenInfra Map API Integration Hub</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold bg-cyan-900/40 border border-cyan-700/50 text-cyan-400">
+                      <span className={`w-1.5 h-1.5 rounded-full ${isContinuousUpdating ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`}></span>
+                      {isContinuousUpdating ? 'STREAMING ATIVO' : 'STREAMING PAUSADO'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-gray-950 border border-gray-800 text-gray-400">
+                      API v2.4
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed font-sans">
+                  Integração nativa com a API de mapeamento público <strong>OpenInfra Map</strong> para cruzamento de dados geoespaciais abertos de ativos de energia solar fotovoltaica. Rastreie e filtre usinas, micro-gerações e rooftops mapeados diretamente por <strong>rua</strong> e <strong>quadra</strong> com telemetria contínua.
+                </p>
+              </div>
+
+              {/* Grid Content */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                {/* LEFT PANEL: Tracker Controls (4 Cols) */}
+                <div className="lg:col-span-4 bg-gray-900/85 border border-gray-800 rounded-xl p-5 space-y-4 shadow-md flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="border-b border-gray-800 pb-2 flex items-center justify-between">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                        <span className="font-sans">🔍</span> Rastreamento por Endereço
+                      </h4>
+                      <span className="text-[9px] text-gray-500">Ativos Disponíveis: {solarMappingDb.length}</span>
+                    </div>
+
+                    {/* Selector Rua */}
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold block">1. Selecionar Rua / Logradouro</label>
+                      <select
+                        value={selectedTrackedStreet}
+                        onChange={(e) => {
+                          setSelectedTrackedStreet(e.target.value);
+                          setApiResultJson('');
+                        }}
+                        className="w-full bg-gray-950 text-white text-xs rounded border border-gray-800 p-2 focus:outline-none focus:border-cyan-500 transition-colors"
+                      >
+                        {uniqueStreets.map(street => (
+                          <option key={street} value={street}>{street}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Selector Quadra */}
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold block">2. Selecionar Quadra / Lote</label>
+                      <select
+                        value={selectedTrackedBlock}
+                        onChange={(e) => {
+                          setSelectedTrackedBlock(e.target.value);
+                          setApiResultJson('');
+                        }}
+                        className="w-full bg-gray-950 text-white text-xs rounded border border-gray-800 p-2 focus:outline-none focus:border-cyan-500 transition-colors"
+                      >
+                        {uniqueBlocksForStreet.map(block => (
+                          <option key={block} value={block}>{block}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Continuous Streaming Engine */}
+                    <div className="bg-gray-950 p-3.5 rounded-lg border border-gray-850 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] text-gray-200 font-bold block">Atualização Contínua por IA</span>
+                          <span className="text-[9px] text-gray-500 font-sans block">Sincroniza telemetria live</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setIsContinuousUpdating(!isContinuousUpdating);
+                            const action = !isContinuousUpdating ? 'Iniciada' : 'Pausada';
+                            const logMsg = `[${new Date().toLocaleTimeString()}] [SYSTEM] Sincronização e escuta contínua de telemetria OpenInfra ${action}.`;
+                            setOpenInfraConsoleLogs(prev => [logMsg, ...prev]);
+                          }}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none ${
+                            isContinuousUpdating ? 'bg-cyan-500' : 'bg-gray-800'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                              isContinuousUpdating ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      <p className="text-[8px] text-gray-500 leading-normal font-sans">
+                        Quando ativo, flutuações atmosféricas de irradiação solar e novas detecções preditivas do algoritmo MEX Computervision retroalimentam a base geoespacial a cada 2.5 segundos.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-850">
+                    <button
+                      onClick={handleSimulateApiCall}
+                      disabled={apiLoading}
+                      className="w-full py-2 bg-gradient-to-r from-cyan-900 to-cyan-950 hover:from-cyan-800 hover:to-cyan-900 border border-cyan-700 hover:border-cyan-500 text-white font-bold text-xs rounded flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {apiLoading ? (
+                        <>
+                          <span className="w-3.5 h-3.5 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
+                          <span>Buscando Ativos...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-sans">⚡</span>
+                          <span>Chamar API OpenInfra (GET)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* CENTER PANEL: Dynamic Coordinates & Telemetry HUD (4 Cols) */}
+                <div className="lg:col-span-4 bg-gray-900/85 border border-gray-800 rounded-xl p-5 space-y-4 shadow-md">
+                  <div className="border-b border-gray-800 pb-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                      <span className="font-sans">🗺️</span> Telemetria Geoespacial Activa
+                    </h4>
+                  </div>
+
+                  {(() => {
+                    const asset = solarMappingDb.find(
+                      item => item.street === selectedTrackedStreet && item.block === selectedTrackedBlock
+                    );
+                    
+                    // Consistent coordinates derived dynamically
+                    const seed = asset ? (asset.id.charCodeAt(3) || 0) : 0;
+                    const latOffset = (seed % 100) / 2000;
+                    const lngOffset = (seed % 80) / 2000;
+                    let baseLat = -22.9068;
+                    let baseLng = -47.0616;
+                    if (asset?.state === 'MG') { baseLat = -18.9186; baseLng = -48.2772; }
+                    else if (asset?.state === 'PE') { baseLat = -9.3812; baseLng = -40.5029; }
+                    else if (asset?.state === 'PI') { baseLat = -5.0920; baseLng = -42.8038; }
+                    const computedLat = Number((baseLat + latOffset).toFixed(5));
+                    const computedLng = Number((baseLng + lngOffset).toFixed(5));
+
+                    // Calculated Dynamic Generation Output (MWh/ano)
+                    const genFactor = asset ? (asset.solarArea * asset.averageIrradiance * (asset.panelEfficiency / 100) * (asset.performanceRatio / 100) * 365) / 1000 : 0;
+
+                    if (!asset) {
+                      return (
+                        <div className="h-60 flex flex-col justify-center items-center text-gray-500 text-xs text-center space-y-1">
+                          <span>Selecione uma combinação de rua e quadra válida para rastreamento.</span>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-4">
+                        {/* Coordinates Grid Banner */}
+                        <div className="bg-gray-950 p-3 rounded border border-gray-850 flex justify-between items-center text-[10px]">
+                          <div>
+                            <span className="text-gray-500 block uppercase text-[8px] tracking-wider font-extrabold">Latitude / Longitude</span>
+                            <span className="text-emerald-400 font-bold font-mono">{computedLat}, {computedLng}</span>
+                          </div>
+                          <span className="text-xs font-sans">🛰️</span>
+                        </div>
+
+                        {/* Telemetry Metrics List */}
+                        <div className="space-y-2.5 text-[10px]">
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Ativo ID:</span>
+                            <span className="text-white font-bold font-mono">{asset.id}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Município / UF:</span>
+                            <span className="text-white font-bold">{asset.municipality} - {asset.state}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Bairro de Detecção:</span>
+                            <span className="text-white font-bold">{asset.neighborhood}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Telhados c/ Solar:</span>
+                            <span className="text-white font-bold">{asset.solarRoofs} de {asset.roofsDetected} ({Math.round((asset.solarRoofs / asset.roofsDetected) * 100)}%)</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Área de Painéis Mapeados:</span>
+                            <span className="text-emerald-400 font-bold">{asset.solarArea.toLocaleString('pt-BR')} m²</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Irradiação (Média Real):</span>
+                            <span className="text-yellow-400 font-bold">{asset.averageIrradiance} kWh/m²/dia</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Geração Calculada Real:</span>
+                            <span className="text-cyan-400 font-bold">{genFactor.toFixed(2)} MWh/ano</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-850 pb-1">
+                            <span className="text-gray-400">Última Sincronização API:</span>
+                            <span className="text-gray-300 font-mono text-[9px]">{new Date(asset.lastScan).toLocaleTimeString()} ({new Date(asset.lastScan).toISOString().slice(0, 10)})</span>
+                          </div>
+                        </div>
+
+                        {/* Interactive mini graphical HUD indicator */}
+                        <div className="bg-gray-950 p-2.5 rounded border border-gray-850 space-y-1.5">
+                          <div className="flex justify-between text-[8px] font-bold text-gray-400">
+                            <span>TAXA DE ADOÇÃO SOLAR</span>
+                            <span>{Math.round((asset.solarRoofs / asset.roofsDetected) * 100)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-900 rounded-full h-2 overflow-hidden border border-gray-800">
+                            <div 
+                              className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full transition-all duration-500" 
+                              style={{ width: `${Math.min(100, (asset.solarRoofs / asset.roofsDetected) * 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* RIGHT PANEL: REST Response & WebSocket terminal (4 Cols) */}
+                <div className="lg:col-span-4 bg-gray-900/85 border border-gray-800 rounded-xl p-5 space-y-4 shadow-md flex flex-col justify-between">
+                  <div className="space-y-3 flex-grow flex flex-col">
+                    <div className="border-b border-gray-800 pb-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                        <span className="font-sans">💻</span> Console de Resposta da API
+                      </h4>
+                    </div>
+
+                    <div className="flex-grow flex flex-col space-y-3">
+                      {/* JSON Response Window */}
+                      <div className="space-y-1 flex-grow flex flex-col">
+                        <span className="text-[8px] text-gray-500 uppercase tracking-widest font-extrabold block">JSON Payload (REST Response)</span>
+                        <div className="bg-gray-950 p-3 rounded border border-gray-850 text-[9px] text-gray-300 font-mono flex-grow overflow-auto h-[150px] scrollbar-thin">
+                          {apiResultJson ? (
+                            <pre className="text-emerald-400 whitespace-pre-wrap word-break-all">{apiResultJson}</pre>
+                          ) : (
+                            <div className="h-full flex flex-col justify-center items-center text-gray-600 space-y-1 text-center">
+                              <span>Nenhuma requisição GET ativa no momento.</span>
+                              <button 
+                                onClick={handleSimulateApiCall}
+                                className="text-cyan-400 hover:underline mt-1 hover:text-cyan-300"
+                              >
+                                Executar Chamada API Inicial
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Event logs stream */}
+                      <div className="space-y-1">
+                        <span className="text-[8px] text-gray-500 uppercase tracking-widest font-extrabold block">Logs do Event-Stream (WebSocket)</span>
+                        <div className="bg-gray-950 p-3 rounded border border-gray-850 text-[9px] font-mono h-[90px] overflow-y-auto text-gray-400 space-y-1 scrollbar-thin">
+                          {openInfraConsoleLogs.map((log, i) => (
+                            <p 
+                              key={i} 
+                              className={
+                                log.includes('TELEMETRY') ? 'text-cyan-400' :
+                                log.includes('Status: 200 OK') ? 'text-emerald-400 font-bold' :
+                                log.includes('SYSTEM') ? 'text-amber-400' : 'text-gray-400'
+                              }
+                            >
+                              {log}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
             </div>
